@@ -1,27 +1,19 @@
 package app.krafted.jokersjuggle.ui
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import app.krafted.jokersjuggle.ui.theme.StageDark
+import androidx.compose.ui.viewinterop.AndroidView
+import app.krafted.jokersjuggle.game.JuggleGameView
 
 @Composable
 fun GameScreen(
     act: Int,
-    onActComplete: (Int, Int) -> Unit, // act, score
+    onActComplete: (Int, Int) -> Unit,
     onGameOver: () -> Unit
 ) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(StageDark),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(text = "Game Screen - Act $act", color = Color.White)
-    }
+    AndroidView(
+        factory = { ctx -> JuggleGameView(ctx) },
+        modifier = Modifier.fillMaxSize()
+    )
 }
