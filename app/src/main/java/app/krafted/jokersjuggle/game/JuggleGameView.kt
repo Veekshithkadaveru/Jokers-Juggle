@@ -31,6 +31,15 @@ class JuggleGameView @JvmOverloads constructor(
     var act: Int = 1
     private var timeSinceLastSpawnMs: Long = 0L
 
+    var score: Int = 0
+    var lives: Int = 3
+    var timeLeftMs: Long = 60000L
+    val comboTracker = ComboTracker()
+    val audienceExcitement = AudienceExcitement()
+
+    var onActComplete: ((completedAct: Int, score: Int) -> Unit)? = null
+    var onGameOver: (() -> Unit)? = null
+
     private val leftHand = Hand(true)
     private val rightHand = Hand(false)
     private val objects = CopyOnWriteArrayList<FallingObject>()
@@ -90,7 +99,8 @@ class JuggleGameView @JvmOverloads constructor(
         objects.add(obj)
     }
 
-    var excitement: Float = 0f
+    val excitement: Float
+        get() = audienceExcitement.value
 
     override fun surfaceCreated(holder: SurfaceHolder) {
         gameThread = GameThread(holder, this).also {
@@ -125,7 +135,14 @@ class JuggleGameView @JvmOverloads constructor(
     }
 
     fun update(deltaSeconds: Float) {
-        timeSinceLastSpawnMs += (deltaSeconds * 1000f).toLong()
+        val deltaMs = (deltaSeconds * 1000f).toLong()
+        timeLeftMs = (timeLeftMs - deltaMs).coerceAtLeast(0L)
+        if (timeLeftMs <= 0L) {
+            endGame(isGameOver = false)
+            return
+        }
+
+        timeSinceLastSpawnMs += deltaMs
         if (timeSinceLastSpawnMs >= JuggleSpawner.getSpawnInterval(excitement) &&
             objects.size < JuggleSpawner.maxSimultaneous(act) &&
             boardWidth > 0f
@@ -139,11 +156,18 @@ class JuggleGameView @JvmOverloads constructor(
         for (obj in objects) {
             PhysicsEngine.update(obj, boardWidth)
         }
+
         val floorLimit = boardHeight * 0.88f
-        objects.removeAll { obj ->
-            CatchDetector.checkCatch(obj, leftHand) ||
-                    CatchDetector.checkCatch(obj, rightHand) ||
-                    obj.y > floorLimit
+        for (obj in objects) {
+            val caught =
+                CatchDetector.checkCatch(obj, leftHand) || CatchDetector.checkCatch(obj, rightHand)
+            if (caught) {
+                handleCatch(obj)
+                objects.remove(obj)
+            } else if (obj.y > floorLimit) {
+                handleDrop(obj)
+                objects.remove(obj)
+            }
         }
 
         val target = backgroundIndex()
@@ -154,6 +178,50 @@ class JuggleGameView @JvmOverloads constructor(
                 prevIndex = target
                 crossProgress = 0f
             }
+        }
+    }
+
+    private fun handleCatch(obj: FallingObject) {
+        if (obj.type == ObjectType.GOLD_X) {
+            lives--
+            comboTracker.resetStreak()
+            if (lives <= 0) {
+                endGame(isGameOver = true)
+            }
+            return
+        }
+
+        comboTracker.incrementStreak()
+        audienceExcitement.onCatch()
+
+        val points = obj.type.points * comboTracker.getMultiplier() * act
+        score += points
+    }
+
+    private fun handleDrop(obj: FallingObject) {
+        if (obj.type == ObjectType.GOLD_X) {
+            lives--
+            if (lives <= 0) {
+                endGame(isGameOver = true)
+            }
+            return
+        }
+
+        lives--
+        comboTracker.resetStreak()
+        audienceExcitement.onDrop()
+
+        if (lives <= 0) {
+            endGame(isGameOver = true)
+        }
+    }
+
+    private fun endGame(isGameOver: Boolean) {
+        gameThread?.running = false
+        if (isGameOver) {
+            post { onGameOver?.invoke() }
+        } else {
+            post { onActComplete?.invoke(act, score) }
         }
     }
 

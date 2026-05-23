@@ -14,12 +14,12 @@ fun GameScreen(
 ) {
     AndroidView(
         factory = { ctx ->
-            JuggleGameView(ctx).apply {
-                this.act = act
-            }
+            JuggleGameView(ctx)
         },
         update = { view ->
             view.act = act
+            view.onActComplete = onActComplete
+            view.onGameOver = onGameOver
         },
         modifier = Modifier.fillMaxSize()
     )
