@@ -12,6 +12,7 @@ import android.view.SurfaceHolder
 import android.view.SurfaceView
 import app.krafted.jokersjuggle.R
 import java.util.concurrent.CopyOnWriteArrayList
+import kotlin.math.ceil
 
 private const val BACKDROP_COLOR = 0xFF0A0408.toInt()
 private const val GLOVE_BURGUNDY = 0xFF7A1521.toInt()
@@ -55,6 +56,10 @@ class JuggleGameView @JvmOverloads constructor(
 
     var onActComplete: ((completedAct: Int, score: Int) -> Unit)? = null
     var onGameOver: (() -> Unit)? = null
+    var onStateSnapshot: ((GameSnapshot) -> Unit)? = null
+    var onJokerEvent: ((JokerEvent) -> Unit)? = null
+
+    private var actStartFired = false
 
     private val leftHand = Hand(true)
     private val rightHand = Hand(false)
@@ -135,6 +140,7 @@ class JuggleGameView @JvmOverloads constructor(
             it.running = true
             it.start()
         }
+        onJokerEvent?.invoke(JokerEvent.ACT_START)
     }
 
     override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
@@ -163,6 +169,10 @@ class JuggleGameView @JvmOverloads constructor(
     }
 
     fun update(deltaSeconds: Float) {
+        if (!actStartFired) {
+            actStartFired = true
+            onJokerEvent?.invoke(JokerEvent.ACT_START)
+        }
         val deltaMs = (deltaSeconds * 1000f).toLong()
         timeLeftMs = (timeLeftMs - deltaMs).coerceAtLeast(0L)
         if (timeLeftMs <= 0L) {
@@ -223,6 +233,20 @@ class JuggleGameView @JvmOverloads constructor(
                 crossProgress = 0f
             }
         }
+
+        onStateSnapshot?.invoke(
+            GameSnapshot(
+                score = score,
+                lives = lives,
+                act = act,
+                timeRemainingMs = timeLeftMs,
+                comboStreak = comboTracker.comboStreak,
+                comboMultiplier = comboTracker.getMultiplier(),
+                excitement = audienceExcitement.value,
+                isMultiplierActive = goldMultiplierTimeLeftMs > 0L,
+                multiplierSecondsLeft = ceil(goldMultiplierTimeLeftMs / 1000.0).toInt()
+            )
+        )
     }
 
     private fun handleCatch(obj: FallingObject, hand: Hand) {
@@ -232,13 +256,22 @@ class JuggleGameView @JvmOverloads constructor(
             flashColor = 0x80C91A1A.toInt()
             flashTimeLeftMs = 300L
             effects.add(GameEffect(EffectType.CRACK, obj.x, obj.y, 600L, 600L))
+            onJokerEvent?.invoke(JokerEvent.GOLD_X)
             if (lives <= 0) {
                 endGame(isGameOver = true)
+            } else {
+                onJokerEvent?.invoke(JokerEvent.LIFE_LOST)
+                if (lives == 1) onJokerEvent?.invoke(JokerEvent.LAST_LIFE)
             }
             return
         }
 
         comboTracker.incrementStreak()
+        when (comboTracker.comboStreak) {
+            5 -> onJokerEvent?.invoke(JokerEvent.COMBO_5)
+            10 -> onJokerEvent?.invoke(JokerEvent.COMBO_10)
+            20 -> onJokerEvent?.invoke(JokerEvent.COMBO_20)
+        }
         audienceExcitement.onCatch()
 
         val activeMultiplier = if (goldMultiplierTimeLeftMs > 0L) 2 else 1
@@ -298,6 +331,7 @@ class JuggleGameView @JvmOverloads constructor(
             flashColor = 0x80FFD860.toInt()
             flashTimeLeftMs = 300L
             effects.add(GameEffect(EffectType.CONFETTI, obj.x, obj.y, 1200L, 1200L))
+            onJokerEvent?.invoke(JokerEvent.LUCKY_7)
         }
     }
 
@@ -307,8 +341,12 @@ class JuggleGameView @JvmOverloads constructor(
             flashColor = 0x80C91A1A.toInt()
             flashTimeLeftMs = 300L
             effects.add(GameEffect(EffectType.CRACK, obj.x, obj.y, 700L, 700L))
+            onJokerEvent?.invoke(JokerEvent.GOLD_X)
             if (lives <= 0) {
                 endGame(isGameOver = true)
+            } else {
+                onJokerEvent?.invoke(JokerEvent.LIFE_LOST)
+                if (lives == 1) onJokerEvent?.invoke(JokerEvent.LAST_LIFE)
             }
             return
         }
@@ -317,17 +355,23 @@ class JuggleGameView @JvmOverloads constructor(
         comboTracker.resetStreak()
         audienceExcitement.onDrop()
         effects.add(GameEffect(EffectType.DROP, obj.x, obj.y, 500L, 500L))
+        onJokerEvent?.invoke(JokerEvent.DROP)
 
         if (lives <= 0) {
             endGame(isGameOver = true)
+        } else {
+            onJokerEvent?.invoke(JokerEvent.LIFE_LOST)
+            if (lives == 1) onJokerEvent?.invoke(JokerEvent.LAST_LIFE)
         }
     }
 
     private fun endGame(isGameOver: Boolean) {
         gameThread?.running = false
         if (isGameOver) {
+            onJokerEvent?.invoke(JokerEvent.GAME_OVER)
             post { onGameOver?.invoke() }
         } else {
+            onJokerEvent?.invoke(JokerEvent.ACT_COMPLETE)
             post { onActComplete?.invoke(act, score) }
         }
     }
