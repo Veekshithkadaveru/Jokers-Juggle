@@ -13,7 +13,14 @@ fun GameScreen(
     onGameOver: () -> Unit
 ) {
     AndroidView(
-        factory = { ctx -> JuggleGameView(ctx) },
+        factory = { ctx ->
+            JuggleGameView(ctx).apply {
+                this.act = act
+            }
+        },
+        update = { view ->
+            view.act = act
+        },
         modifier = Modifier.fillMaxSize()
     )
 }

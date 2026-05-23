@@ -28,6 +28,9 @@ class JuggleGameView @JvmOverloads constructor(
     attrs: AttributeSet? = null
 ) : SurfaceView(context, attrs), SurfaceHolder.Callback {
 
+    var act: Int = 1
+    private var timeSinceLastSpawnMs: Long = 0L
+
     private val leftHand = Hand(true)
     private val rightHand = Hand(false)
     private val objects = CopyOnWriteArrayList<FallingObject>()
@@ -122,12 +125,26 @@ class JuggleGameView @JvmOverloads constructor(
     }
 
     fun update(deltaSeconds: Float) {
+        timeSinceLastSpawnMs += (deltaSeconds * 1000f).toLong()
+        if (timeSinceLastSpawnMs >= JuggleSpawner.getSpawnInterval(excitement) &&
+            objects.size < JuggleSpawner.maxSimultaneous(act) &&
+            boardWidth > 0f
+        ) {
+            objects.add(JuggleSpawner.spawnObject(boardWidth, act))
+            timeSinceLastSpawnMs = 0L
+        }
+
         leftHand.update(deltaSeconds)
         rightHand.update(deltaSeconds)
         for (obj in objects) {
             PhysicsEngine.update(obj, boardWidth)
         }
-        objects.removeAll { it.y > boardHeight + 100f }
+        val floorLimit = boardHeight * 0.88f
+        objects.removeAll { obj ->
+            CatchDetector.checkCatch(obj, leftHand) ||
+                    CatchDetector.checkCatch(obj, rightHand) ||
+                    obj.y > floorLimit
+        }
 
         val target = backgroundIndex()
         if (target != prevIndex) {

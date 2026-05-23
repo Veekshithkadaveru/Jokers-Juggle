@@ -22,6 +22,7 @@ private val DarkColorScheme = darkColorScheme(
     onSurface = CreamText
 )
 
+@Suppress("DEPRECATION")
 @Composable
 fun JokersJuggleTheme(
     darkTheme: Boolean = true, // Force dark theme by default
