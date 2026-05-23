@@ -23,6 +23,18 @@ private const val GLOVE_STROKE = 6f
 private const val THUMB_RADIUS = 18f
 private const val CROSSFADE_DURATION = 0.6f
 
+enum class EffectType { SCORE, CRACK, DROP, YELLOW_RING, ORANGE_RING, GOLD_BURST, CONFETTI }
+
+data class GameEffect(
+    val type: EffectType,
+    val x: Float,
+    val y: Float,
+    val durationMs: Long,
+    var timeLeftMs: Long,
+    val valueText: String = "",
+    val color: Int = 0
+)
+
 class JuggleGameView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null
@@ -36,6 +48,10 @@ class JuggleGameView @JvmOverloads constructor(
     var timeLeftMs: Long = 60000L
     val comboTracker = ComboTracker()
     val audienceExcitement = AudienceExcitement()
+    var goldMultiplierTimeLeftMs: Long = 0L
+    var flashColor: Int? = null
+    var flashTimeLeftMs: Long = 0L
+    val effects = CopyOnWriteArrayList<GameEffect>()
 
     var onActComplete: ((completedAct: Int, score: Int) -> Unit)? = null
     var onGameOver: (() -> Unit)? = null
@@ -66,6 +82,18 @@ class JuggleGameView @JvmOverloads constructor(
         strokeWidth = GLOVE_STROKE
     }
     private val gloveRect = RectF()
+
+    private val effectTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        textAlign = Paint.Align.CENTER
+        textSize = 40f
+        isFakeBoldText = true
+    }
+    private val effectRingPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.STROKE
+    }
+    private val effectFillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.FILL
+    }
 
     init {
         holder.addCallback(this)
@@ -142,6 +170,21 @@ class JuggleGameView @JvmOverloads constructor(
             return
         }
 
+        if (goldMultiplierTimeLeftMs > 0L) {
+            goldMultiplierTimeLeftMs = (goldMultiplierTimeLeftMs - deltaMs).coerceAtLeast(0L)
+        }
+        if (flashTimeLeftMs > 0L) {
+            flashTimeLeftMs = (flashTimeLeftMs - deltaMs).coerceAtLeast(0L)
+            if (flashTimeLeftMs <= 0L) {
+                flashColor = null
+            }
+        }
+
+        for (eff in effects) {
+            eff.timeLeftMs = (eff.timeLeftMs - deltaMs).coerceAtLeast(0L)
+        }
+        effects.removeIf { it.timeLeftMs <= 0L }
+
         timeSinceLastSpawnMs += deltaMs
         if (timeSinceLastSpawnMs >= JuggleSpawner.getSpawnInterval(excitement) &&
             objects.size < JuggleSpawner.maxSimultaneous(act) &&
@@ -159,10 +202,11 @@ class JuggleGameView @JvmOverloads constructor(
 
         val floorLimit = boardHeight * 0.88f
         for (obj in objects) {
-            val caught =
-                CatchDetector.checkCatch(obj, leftHand) || CatchDetector.checkCatch(obj, rightHand)
-            if (caught) {
-                handleCatch(obj)
+            val leftCaught = CatchDetector.checkCatch(obj, leftHand)
+            val rightCaught = CatchDetector.checkCatch(obj, rightHand)
+            if (leftCaught || rightCaught) {
+                val hand = if (leftCaught) leftHand else rightHand
+                handleCatch(obj, hand)
                 objects.remove(obj)
             } else if (obj.y > floorLimit) {
                 handleDrop(obj)
@@ -181,10 +225,13 @@ class JuggleGameView @JvmOverloads constructor(
         }
     }
 
-    private fun handleCatch(obj: FallingObject) {
+    private fun handleCatch(obj: FallingObject, hand: Hand) {
         if (obj.type == ObjectType.GOLD_X) {
             lives--
             comboTracker.resetStreak()
+            flashColor = 0x80C91A1A.toInt()
+            flashTimeLeftMs = 300L
+            effects.add(GameEffect(EffectType.CRACK, obj.x, obj.y, 600L, 600L))
             if (lives <= 0) {
                 endGame(isGameOver = true)
             }
@@ -194,13 +241,72 @@ class JuggleGameView @JvmOverloads constructor(
         comboTracker.incrementStreak()
         audienceExcitement.onCatch()
 
-        val points = obj.type.points * comboTracker.getMultiplier() * act
+        val activeMultiplier = if (goldMultiplierTimeLeftMs > 0L) 2 else 1
+        val comboMultiplier = comboTracker.getMultiplier()
+        val points = obj.type.points * comboMultiplier * act * activeMultiplier
         score += points
+
+        val textColor = if (comboMultiplier >= 3) GLOVE_GOLD else 0xFFF4E9D8.toInt()
+        effects.add(
+            GameEffect(
+                EffectType.SCORE,
+                hand.x,
+                hand.y - 40f,
+                700L,
+                700L,
+                "+$points",
+                textColor
+            )
+        )
+
+        when {
+            comboMultiplier >= 5 -> {
+                effects.add(GameEffect(EffectType.GOLD_BURST, obj.x, obj.y, 600L, 600L))
+            }
+
+            comboMultiplier >= 3 -> {
+                effects.add(GameEffect(EffectType.ORANGE_RING, obj.x, obj.y, 500L, 500L))
+            }
+
+            comboMultiplier >= 2 -> {
+                effects.add(GameEffect(EffectType.YELLOW_RING, obj.x, obj.y, 400L, 400L))
+            }
+        }
+
+        if (obj.type == ObjectType.JOKER_HAT) {
+            val allowedTypes = listOf(
+                ObjectType.GRAPES,
+                ObjectType.CHERRIES,
+                ObjectType.ORANGE,
+                ObjectType.GOLD_STAR,
+                ObjectType.LUCKY_7
+            )
+            val newType = allowedTypes.random()
+            val newObj = FallingObject(
+                type = newType,
+                x = hand.x,
+                y = hand.y - 50f,
+                velocityX = (kotlin.random.Random.nextFloat() - 0.5f) * 4f,
+                velocityY = -baseFallSpeed(newType, act) * 1.2f,
+                isActive = true
+            )
+            addObject(newObj)
+        } else if (obj.type == ObjectType.GOLD_STAR) {
+            goldMultiplierTimeLeftMs = 5000L
+        } else if (obj.type == ObjectType.LUCKY_7) {
+            score += 100 * act
+            flashColor = 0x80FFD860.toInt()
+            flashTimeLeftMs = 300L
+            effects.add(GameEffect(EffectType.CONFETTI, obj.x, obj.y, 1200L, 1200L))
+        }
     }
 
     private fun handleDrop(obj: FallingObject) {
         if (obj.type == ObjectType.GOLD_X) {
             lives--
+            flashColor = 0x80C91A1A.toInt()
+            flashTimeLeftMs = 300L
+            effects.add(GameEffect(EffectType.CRACK, obj.x, obj.y, 700L, 700L))
             if (lives <= 0) {
                 endGame(isGameOver = true)
             }
@@ -210,6 +316,7 @@ class JuggleGameView @JvmOverloads constructor(
         lives--
         comboTracker.resetStreak()
         audienceExcitement.onDrop()
+        effects.add(GameEffect(EffectType.DROP, obj.x, obj.y, 500L, 500L))
 
         if (lives <= 0) {
             endGame(isGameOver = true)
@@ -238,6 +345,12 @@ class JuggleGameView @JvmOverloads constructor(
         renderObjects(canvas)
         renderHand(canvas, leftHand)
         renderHand(canvas, rightHand)
+        renderEffects(canvas)
+
+        val color = flashColor
+        if (color != null) {
+            canvas.drawColor(color)
+        }
     }
 
     private fun renderBackground(canvas: Canvas) {
@@ -275,6 +388,30 @@ class JuggleGameView @JvmOverloads constructor(
             hand.x + GLOVE_HALF_WIDTH,
             hand.y + GLOVE_HALF_HEIGHT
         )
+        if (goldMultiplierTimeLeftMs > 0L) {
+            val pulse =
+                (kotlin.math.sin(System.currentTimeMillis() / 120.0).toFloat() * 0.5f + 0.5f)
+            val alphaGlow = (100 + pulse * 120).toInt().coerceIn(0, 255)
+            val glowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                style = Paint.Style.STROKE
+                color = GLOVE_GOLD
+                strokeWidth = GLOVE_STROKE * 2f
+                alpha = alphaGlow
+            }
+            val glowOffset = 10f
+            val glowRect = RectF(
+                gloveRect.left - glowOffset,
+                gloveRect.top - glowOffset,
+                gloveRect.right + glowOffset,
+                gloveRect.bottom + glowOffset
+            )
+            canvas.drawRoundRect(
+                glowRect,
+                GLOVE_CORNER + glowOffset,
+                GLOVE_CORNER + glowOffset,
+                glowPaint
+            )
+        }
         canvas.drawRoundRect(gloveRect, GLOVE_CORNER, GLOVE_CORNER, gloveFillPaint)
         canvas.drawRoundRect(gloveRect, GLOVE_CORNER, GLOVE_CORNER, gloveStrokePaint)
         val thumbX = if (hand.isLeft) hand.x + GLOVE_HALF_WIDTH else hand.x - GLOVE_HALF_WIDTH
@@ -283,6 +420,115 @@ class JuggleGameView @JvmOverloads constructor(
         canvas.drawCircle(thumbX, thumbY, THUMB_RADIUS, gloveStrokePaint)
         canvas.restore()
         hand.prevX = hand.x
+    }
+
+    private fun renderEffects(canvas: Canvas) {
+        for (eff in effects) {
+            val age = (eff.durationMs - eff.timeLeftMs).toFloat() / eff.durationMs.toFloat()
+            val alphaVal = ((1f - age) * 255).toInt().coerceIn(0, 255)
+
+            when (eff.type) {
+                EffectType.SCORE -> {
+                    effectTextPaint.color = eff.color
+                    effectTextPaint.alpha = alphaVal
+                    val floatOffset = age * 50f
+                    canvas.drawText(eff.valueText, eff.x, eff.y - floatOffset, effectTextPaint)
+                }
+
+                EffectType.YELLOW_RING -> {
+                    effectRingPaint.color = 0xFFFFD860.toInt()
+                    effectRingPaint.alpha = alphaVal
+                    effectRingPaint.strokeWidth = 6f
+                    val radius = 10f + age * 50f
+                    canvas.drawCircle(eff.x, eff.y, radius, effectRingPaint)
+                }
+
+                EffectType.ORANGE_RING -> {
+                    effectRingPaint.color = 0xFFFF8030.toInt()
+                    effectRingPaint.alpha = alphaVal
+                    effectRingPaint.strokeWidth = 8f
+                    val radius = 10f + age * 60f
+                    canvas.drawCircle(eff.x, eff.y, radius, effectRingPaint)
+
+                    effectFillPaint.color = 0xFFFF9030.toInt()
+                    effectFillPaint.alpha = alphaVal
+                    val dist = age * 60f
+                    for (k in 0 until 8) {
+                        val angle = (k / 8.0f) * 2f * 3.1415927f
+                        val dotX = eff.x + kotlin.math.cos(angle) * dist
+                        val dotY = eff.y + kotlin.math.sin(angle) * dist
+                        canvas.drawCircle(dotX, dotY, 8f, effectFillPaint)
+                    }
+                }
+
+                EffectType.GOLD_BURST -> {
+                    effectRingPaint.color = 0xFFFFD860.toInt()
+                    effectRingPaint.alpha = alphaVal
+                    effectRingPaint.strokeWidth = 10f
+                    val radius = 12f + age * 80f
+                    canvas.drawCircle(eff.x, eff.y, radius, effectRingPaint)
+
+                    effectFillPaint.color = 0xFFFFD860.toInt()
+                    effectFillPaint.alpha = alphaVal
+                    val dist = age * 100f
+                    for (k in 0 until 12) {
+                        val angle = (k / 12.0f) * 2f * 3.1415927f
+                        val dotX = eff.x + kotlin.math.cos(angle) * dist
+                        val dotY = eff.y + kotlin.math.sin(angle) * dist
+                        canvas.drawCircle(dotX, dotY, 10f, effectFillPaint)
+                    }
+                }
+
+                EffectType.CRACK -> {
+                    effectFillPaint.color = 0xFFC91A1A.toInt()
+                    effectFillPaint.alpha = alphaVal
+                    val w = 60f
+                    val h = 6f
+                    val crackRect = RectF(
+                        eff.x - w / 2f,
+                        eff.y - h / 2f,
+                        eff.x + w / 2f,
+                        eff.y + h / 2f
+                    )
+                    canvas.drawRect(crackRect, effectFillPaint)
+                }
+
+                EffectType.DROP -> {
+                    effectFillPaint.color = 0xFF3A0408.toInt()
+                    effectFillPaint.alpha = alphaVal
+                    val rx = 30f * (1f + age * 1.5f)
+                    val ry = 4f
+                    val splashRect = RectF(eff.x - rx, eff.y - ry, eff.x + rx, eff.y + ry)
+                    canvas.drawOval(splashRect, effectFillPaint)
+                }
+
+                EffectType.CONFETTI -> {
+                    val colors = intArrayOf(
+                        0xFFFFD860.toInt(),
+                        0xFFC91A1A.toInt(),
+                        0xFF7A2DB0.toInt(),
+                        0xFF3A8A4A.toInt(),
+                        0xFFF4E9D8.toInt()
+                    )
+                    val dist = age * 200f
+                    for (k in 0 until 20) {
+                        val angle = (k / 20.0f) * 2f * 3.1415927f + age
+                        val cx = eff.x + kotlin.math.cos(angle) * dist
+                        val cy = eff.y + kotlin.math.sin(angle) * dist
+                        effectFillPaint.color = colors[k % colors.size]
+                        effectFillPaint.alpha = alphaVal
+
+                        canvas.save()
+                        canvas.translate(cx, cy)
+                        canvas.rotate(age * 720f)
+                        val w = 12f
+                        val h = 20f
+                        canvas.drawRect(-w / 2f, -h / 2f, w / 2f, h / 2f, effectFillPaint)
+                        canvas.restore()
+                    }
+                }
+            }
+        }
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
