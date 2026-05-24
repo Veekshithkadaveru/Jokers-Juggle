@@ -12,23 +12,22 @@ class GameViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(GameUiState())
     val uiState: StateFlow<GameUiState> = _uiState.asStateFlow()
 
-    fun setAct(act: Int) {
-        _uiState.value = _uiState.value.copy(currentAct = act)
-    }
-
     fun onSnapshot(s: GameSnapshot) {
         _uiState.value = _uiState.value.copy(
             score = s.score,
             lives = s.lives,
-            currentAct = s.act,
-            timeRemainingMs = s.timeRemainingMs,
-            comboStreak = s.comboStreak,
-            comboMultiplier = s.comboMultiplier,
+            airborneCount = s.airborneCount,
+            multiplier = s.multiplier,
+            elapsedSeconds = s.elapsedSeconds,
+            nextObjectCountdown = s.nextObjectCountdown,
             audienceExcitement = s.excitement,
-            isMultiplierActive = s.isMultiplierActive,
-            multiplierSecondsLeft = s.multiplierSecondsLeft,
+            isGoldStarActive = s.isMultiplierActive,
+            goldStarSecondsLeft = s.multiplierSecondsLeft,
             screenAlpha = s.screenAlpha,
-            controlsSwapped = s.controlsSwapped
+            controlsSwapped = s.controlsSwapped,
+            isGameOver = s.isGameOver,
+            bestScore = s.bestScore,
+            maxObjectsReached = s.maxObjectsReached
         )
     }
 
@@ -38,5 +37,9 @@ class GameViewModel : ViewModel() {
             jokerExpression = expression,
             jokerQuote = quote
         )
+    }
+
+    fun resetState() {
+        _uiState.value = GameUiState()
     }
 }

@@ -9,8 +9,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -22,6 +22,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
@@ -30,6 +31,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.krafted.jokersjuggle.ui.theme.Burgundy
@@ -40,9 +42,6 @@ import app.krafted.jokersjuggle.ui.theme.MarqueeDim
 import app.krafted.jokersjuggle.ui.theme.StageDark
 import app.krafted.jokersjuggle.viewmodel.GameUiState
 import app.krafted.jokersjuggle.viewmodel.JokerExpression
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.unit.Dp
-import kotlin.math.ceil
 
 private val WarningOrange = Color(0xFFFF8050)
 private val Frenzy = Color(0xFFFFD860)
@@ -55,8 +54,8 @@ fun HudOverlay(state: GameUiState, modifier: Modifier = Modifier) {
             .padding(horizontal = 10.dp, vertical = 6.dp)
     ) {
         ExcitementMeterRow(state.audienceExcitement)
-        StatsBar(score = state.score, lives = state.lives, act = state.currentAct)
-        TimerComboRow(state)
+        StatsBar(score = state.score, lives = state.lives, multiplier = state.multiplier)
+        TimerObjectsRow(state)
     }
 }
 
@@ -81,8 +80,16 @@ private fun ExcitementMeterRow(excitement: Float) {
     }
     val labelColor = if (excitement >= 75f) Frenzy else CreamText
 
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Text(text = "😐", fontSize = 13.sp)
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Text(
+            text = "Excitement: ",
+            color = CreamText.copy(alpha = 0.8f),
+            fontSize = 11.sp,
+            fontWeight = FontWeight.SemiBold
+        )
         Box(
             modifier = Modifier
                 .weight(1f)
@@ -109,15 +116,15 @@ private fun ExcitementMeterRow(excitement: Float) {
                 fontSize = 8.sp,
                 fontWeight = FontWeight.SemiBold,
                 letterSpacing = 1.sp,
-                modifier = Modifier.align(Alignment.CenterEnd)
+                modifier = Modifier.align(Alignment.CenterEnd).padding(end = 4.dp)
             )
         }
-        Text(text = "🤩", fontSize = 13.sp)
+        Text(text = "🎪", fontSize = 13.sp)
     }
 }
 
 @Composable
-private fun StatsBar(score: Int, lives: Int, act: Int) {
+private fun StatsBar(score: Int, lives: Int, multiplier: Int) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -152,16 +159,16 @@ private fun StatsBar(score: Int, lives: Int, act: Int) {
             )
         }
         Text(
-            text = "ACT $act/3",
+            text = "×$multiplier",
             color = Gold,
-            fontSize = 10.sp,
-            fontWeight = FontWeight.SemiBold,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold,
             letterSpacing = 1.sp,
             modifier = Modifier
                 .clip(RoundedCornerShape(3.dp))
                 .background(Color(0xFF1A0808))
                 .border(1.dp, MarqueeDim, RoundedCornerShape(3.dp))
-                .padding(horizontal = 8.dp, vertical = 4.dp)
+                .padding(horizontal = 12.dp, vertical = 4.dp)
         )
     }
 }
@@ -188,7 +195,6 @@ private fun HeartIcon(alive: Boolean, size: Dp) {
             .drawBehind {
                 val w = this.size.width
                 val h = this.size.height
-                // heart path scaled from the reference 24x24 viewBox
                 val sx = w / 24f
                 val sy = h / 24f
                 val path = Path().apply {
@@ -212,7 +218,7 @@ private fun HeartIcon(alive: Boolean, size: Dp) {
 }
 
 @Composable
-private fun TimerComboRow(state: GameUiState) {
+private fun TimerObjectsRow(state: GameUiState) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -220,61 +226,57 @@ private fun TimerComboRow(state: GameUiState) {
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        val warning = state.timeRemainingMs < 10_000L
+        // Survival Timer
         Text(
-            text = formatTime(state.timeRemainingMs),
-            color = if (warning) WarningOrange else CreamText,
+            text = "⏱ ${formatTime(state.elapsedSeconds)}",
+            color = CreamText,
             fontFamily = FontFamily.Monospace,
-            fontSize = 12.sp
+            fontSize = 12.sp,
+            fontWeight = FontWeight.SemiBold
         )
 
-        if (state.comboStreak >= 5) {
-            val comboColor = when {
-                state.comboMultiplier >= 5 -> Frenzy
-                state.comboMultiplier >= 4 -> Color(0xFFFF5020)
-                state.comboMultiplier >= 3 -> Color(0xFFFF9A30)
-                else -> Frenzy
-            }
-            Text(
-                text = "×${state.comboMultiplier}  ·  ${state.comboStreak} STREAK",
-                color = comboColor,
-                fontStyle = FontStyle.Italic,
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 16.sp,
-                letterSpacing = 1.sp
-            )
-        } else {
-            Text(
-                text = "· · · ·",
-                color = MarqueeDim,
-                fontSize = 10.sp,
-                letterSpacing = 2.sp
-            )
-        }
+        // Airborne count
+        Text(
+            text = "Objects: ${state.airborneCount}",
+            color = Gold,
+            fontFamily = FontFamily.SansSerif,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.SemiBold
+        )
 
-        if (state.isMultiplierActive) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            // Gold Star 2x Active state
+            if (state.isGoldStarActive) {
+                Text(
+                    text = "★ 2× · ${state.goldStarSecondsLeft}s",
+                    color = Frenzy,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier
+                        .padding(end = 8.dp)
+                        .clip(RoundedCornerShape(3.dp))
+                        .background(Frenzy.copy(alpha = 0.15f))
+                        .border(1.dp, Frenzy, RoundedCornerShape(3.dp))
+                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                )
+            }
+
+            // Next spawner countdown
             Text(
-                text = "★ 2× · ${state.multiplierSecondsLeft}s",
-                color = Frenzy,
-                fontSize = 10.sp,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier
-                    .clip(RoundedCornerShape(3.dp))
-                    .background(Frenzy.copy(alpha = 0.15f))
-                    .border(1.dp, Frenzy, RoundedCornerShape(3.dp))
-                    .padding(horizontal = 6.dp, vertical = 2.dp)
+                text = "Next: ${state.nextObjectCountdown}s",
+                color = if (state.nextObjectCountdown <= 3) WarningOrange else CreamText,
+                fontFamily = FontFamily.Monospace,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.SemiBold
             )
-        } else {
-            Box(modifier = Modifier.width(50.dp))
         }
     }
 }
 
-private fun formatTime(ms: Long): String {
-    val totalSeconds = ceil(ms.coerceAtLeast(0L) / 1000.0).toInt()
-    val minutes = totalSeconds / 60
-    val seconds = totalSeconds % 60
-    return "%02d:%02d".format(minutes, seconds)
+private fun formatTime(seconds: Int): String {
+    val mins = seconds / 60
+    val secs = seconds % 60
+    return "%02d:%02d".format(mins, secs)
 }
 
 @Preview
@@ -287,17 +289,17 @@ private fun HudOverlayPreview() {
     ) {
         HudOverlay(
             state = GameUiState(
-                score = 12450,
-                lives = 2,
-                currentAct = 2,
-                timeRemainingMs = 8000L,
-                comboStreak = 7,
-                comboMultiplier = 3,
+                score = 3420,
+                lives = 3,
+                airborneCount = 5,
+                multiplier = 3,
+                elapsedSeconds = 84,
+                nextObjectCountdown = 12,
                 audienceExcitement = 82f,
-                isMultiplierActive = true,
-                multiplierSecondsLeft = 4,
+                isGoldStarActive = true,
+                goldStarSecondsLeft = 8,
                 jokerExpression = JokerExpression.GLEEFUL,
-                jokerQuote = "Bravo!",
+                jokerQuote = "Double points for eight seconds.",
                 controlsSwapped = false,
                 screenAlpha = 1f
             )

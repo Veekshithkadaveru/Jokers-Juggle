@@ -3,11 +3,16 @@ package app.krafted.jokersjuggle.game
 import kotlin.math.abs
 
 object CatchDetector {
-    fun checkCatch(obj: FallingObject, hand: Hand): Boolean {
+    fun checkCatch(obj: JuggleObject, hand: Hand): Boolean {
+        if (obj.velocityY < 0f) return false
+
         val dx = abs(obj.x - hand.x)
         val dy = abs(obj.y - hand.y)
-        return dx < 65f + obj.radius * 0.5f &&
-                dy < 36f + obj.radius * 0.5f &&
-                obj.y >= hand.y - 36f
+
+        val halfW = hand.catchWidth / 2f
+        val halfH = hand.catchHeight / 2f
+
+        return dx < halfW + obj.radius * 0.5f &&
+                dy < halfH + obj.radius * 0.5f
     }
 }

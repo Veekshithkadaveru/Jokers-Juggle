@@ -60,86 +60,42 @@ fun JokersJuggleApp(modifier: Modifier = Modifier) {
         composable("home") {
             HomeScreen(
                 onPlayClick = {
-                    navController.navigate("act_intro/1")
+                    navController.navigate("game")
                 },
                 onLeaderboardClick = {
                     navController.navigate("leaderboard")
                 }
             )
         }
-        composable(
-            route = "act_intro/{act}",
-            arguments = listOf(navArgument("act") { type = NavType.IntType })
-        ) { backStackEntry ->
-            val act = backStackEntry.arguments?.getInt("act") ?: 1
-            ActIntroScreen(
-                act = act,
-                onStartAct = { selectedAct ->
-                    navController.navigate("game/$selectedAct")
-                }
-            )
-        }
-        composable(
-            route = "game/{act}",
-            arguments = listOf(navArgument("act") { type = NavType.IntType })
-        ) { backStackEntry ->
-            val act = backStackEntry.arguments?.getInt("act") ?: 1
+        composable("game") {
             GameScreen(
-                act = act,
-                onActComplete = { completedAct, score ->
-                    navController.navigate("act_complete/$completedAct/$score")
-                },
-                onGameOver = {
-                    navController.navigate("game_over")
+                onGameOver = { score, elapsedSeconds, maxObjects ->
+                    navController.navigate("game_over/$score/$elapsedSeconds/$maxObjects") {
+                        popUpTo("game") { inclusive = true }
+                    }
                 }
             )
         }
         composable(
-            route = "act_complete/{act}/{score}",
+            route = "game_over/{score}/{time}/{maxObjects}",
             arguments = listOf(
-                navArgument("act") { type = NavType.IntType },
-                navArgument("score") { type = NavType.IntType }
+                navArgument("score") { type = NavType.IntType },
+                navArgument("time") { type = NavType.IntType },
+                navArgument("maxObjects") { type = NavType.IntType }
             )
         ) { backStackEntry ->
-            val act = backStackEntry.arguments?.getInt("act") ?: 1
             val score = backStackEntry.arguments?.getInt("score") ?: 0
-            ActCompleteScreen(
-                act = act,
-                score = score,
-                onNextActClick = {
-                    if (act < 3) {
-                        navController.navigate("act_intro/${act + 1}")
-                    } else {
-                        // All acts complete -> finale
-                        navController.navigate("finale") {
-                            popUpTo("home") { inclusive = false }
-                        }
-                    }
-                },
-                onHomeClick = {
-                    navController.navigate("home") {
-                        popUpTo("home") { inclusive = true }
-                    }
-                }
-            )
-        }
-        composable("game_over") {
+            val time = backStackEntry.arguments?.getInt("time") ?: 0
+            val maxObjects = backStackEntry.arguments?.getInt("maxObjects") ?: 0
             GameOverScreen(
+                score = score,
+                timeSurvivedSeconds = time,
+                maxObjectsReached = maxObjects,
                 onReplayClick = {
-                    navController.navigate("act_intro/1") {
+                    navController.navigate("game") {
                         popUpTo("home") { inclusive = false }
                     }
                 },
-                onHomeClick = {
-                    navController.navigate("home") {
-                        popUpTo("home") { inclusive = true }
-                    }
-                }
-            )
-        }
-        composable("finale") {
-            GrandFinaleScreen(
-                scores = listOf(0, 0, 0), // Default dummy scores for navigation stub
                 onHomeClick = {
                     navController.navigate("home") {
                         popUpTo("home") { inclusive = true }

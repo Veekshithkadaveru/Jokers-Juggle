@@ -2,43 +2,61 @@ package app.krafted.jokersjuggle.game
 
 import kotlin.random.Random
 
-enum class ChaosEvent { WIND, SPEED_RUSH, JOKER_THROW, BLACKOUT, MIRROR }
+enum class ChaosEvent { WIND, SPEED_CHANGE, JOKER_THROW, BLACKOUT, MIRROR }
 
 class ChaosEventEngine {
     var windForce: Float = 0f
     var speedMultiplier: Float = 1f
+    var gravityMultiplier: Float = 1f
     var screenAlpha: Float = 1f
     var controlsSwapped: Boolean = false
 
     private var activeEvent: ChaosEvent? = null
     private var remainingMs: Long = 0L
 
-    private var schedulerMs: Long = SCHEDULER_INTERVAL_MS
-    private var jokerCooldownMs: Long = 0L
-    private var blackoutUsed: Boolean = false
-    private var mirrorUsed: Boolean = false
+    private var windTriggered = false
+    private var blackoutTriggered = false
+    private var mirrorTriggered = false
+    private var speedChangeTimerMs = 0L
+    private var jokerThrowCooldownMs = 0L
 
-    fun update(deltaMs: Long, act: Int, excitement: Float): ChaosEvent? {
-        if (act != 3) return null
-
-        if (jokerCooldownMs > 0L) jokerCooldownMs -= deltaMs
-
-        // While an event is active only count it down; nothing new can start.
+    fun update(deltaMs: Long, elapsedMs: Long, excitement: Float, airborneCount: Int): ChaosEvent? {
         if (activeEvent != null) {
             remainingMs -= deltaMs
             if (remainingMs <= 0L) endActiveEvent()
             return null
         }
 
-        schedulerMs -= deltaMs
+        if (airborneCount < 4) return null
 
-        if (excitement > 75f && jokerCooldownMs <= 0L) {
-            return start(ChaosEvent.JOKER_THROW)
+        if (jokerThrowCooldownMs > 0L) jokerThrowCooldownMs -= deltaMs
+
+        val elapsedSec = (elapsedMs / 1000).toInt()
+
+        if (elapsedSec >= 30 && !windTriggered) {
+            windTriggered = true
+            return start(ChaosEvent.WIND)
         }
 
-        if (schedulerMs <= 0L) {
-            schedulerMs += SCHEDULER_INTERVAL_MS
-            return start(pickScheduledEvent())
+        if (elapsedSec >= 60 && !blackoutTriggered) {
+            blackoutTriggered = true
+            return start(ChaosEvent.BLACKOUT)
+        }
+
+        if (elapsedSec >= 90 && !mirrorTriggered) {
+            mirrorTriggered = true
+            return start(ChaosEvent.MIRROR)
+        }
+
+        speedChangeTimerMs += deltaMs
+        if (speedChangeTimerMs >= 45_000L) {
+            speedChangeTimerMs = 0L
+            return start(ChaosEvent.SPEED_CHANGE)
+        }
+
+        if (excitement >= 100f && jokerThrowCooldownMs <= 0L) {
+            jokerThrowCooldownMs = 15_000L
+            return start(ChaosEvent.JOKER_THROW)
         }
 
         return null
@@ -47,50 +65,43 @@ class ChaosEventEngine {
     fun reset() {
         windForce = 0f
         speedMultiplier = 1f
+        gravityMultiplier = 1f
         screenAlpha = 1f
         controlsSwapped = false
         activeEvent = null
         remainingMs = 0L
-        schedulerMs = SCHEDULER_INTERVAL_MS
-        jokerCooldownMs = 0L
-        blackoutUsed = false
-        mirrorUsed = false
-    }
-
-    private fun pickScheduledEvent(): ChaosEvent {
-        val pool = mutableListOf(
-            ChaosEvent.WIND, ChaosEvent.WIND, ChaosEvent.WIND,
-            ChaosEvent.SPEED_RUSH
-        )
-        if (!blackoutUsed) pool.add(ChaosEvent.BLACKOUT)
-        if (!mirrorUsed) pool.add(ChaosEvent.MIRROR)
-        return pool[Random.nextInt(pool.size)]
+        windTriggered = false
+        blackoutTriggered = false
+        mirrorTriggered = false
+        speedChangeTimerMs = 0L
+        jokerThrowCooldownMs = 0L
     }
 
     private fun start(event: ChaosEvent): ChaosEvent {
         activeEvent = event
         when (event) {
             ChaosEvent.WIND -> {
-                windForce = (if (Random.nextBoolean()) 1f else -1f) * 80f
+                windForce = if (Random.nextBoolean()) 120f else -120f
                 remainingMs = 5000L
             }
-            ChaosEvent.SPEED_RUSH -> {
-                speedMultiplier = 2f
-                remainingMs = 3000L
+
+            ChaosEvent.SPEED_CHANGE -> {
+                gravityMultiplier = 1.5f
+                remainingMs = 4000L
             }
-            ChaosEvent.JOKER_THROW -> {
-                remainingMs = 800L
-                jokerCooldownMs = JOKER_COOLDOWN_MS
-            }
+
             ChaosEvent.BLACKOUT -> {
                 screenAlpha = 0.2f
                 remainingMs = 2000L
-                blackoutUsed = true
             }
+
             ChaosEvent.MIRROR -> {
                 controlsSwapped = true
                 remainingMs = 4000L
-                mirrorUsed = true
+            }
+
+            ChaosEvent.JOKER_THROW -> {
+                remainingMs = 500L
             }
         }
         return event
@@ -99,17 +110,12 @@ class ChaosEventEngine {
     private fun endActiveEvent() {
         when (activeEvent) {
             ChaosEvent.WIND -> windForce = 0f
-            ChaosEvent.SPEED_RUSH -> speedMultiplier = 1f
+            ChaosEvent.SPEED_CHANGE -> gravityMultiplier = 1f
             ChaosEvent.BLACKOUT -> screenAlpha = 1f
             ChaosEvent.MIRROR -> controlsSwapped = false
             else -> {}
         }
         activeEvent = null
         remainingMs = 0L
-    }
-
-    private companion object {
-        const val SCHEDULER_INTERVAL_MS = 15000L
-        const val JOKER_COOLDOWN_MS = 6000L
     }
 }

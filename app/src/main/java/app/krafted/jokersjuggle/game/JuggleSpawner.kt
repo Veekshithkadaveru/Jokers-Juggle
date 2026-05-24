@@ -2,71 +2,61 @@ package app.krafted.jokersjuggle.game
 
 import kotlin.random.Random
 
-object JuggleSpawner {
+class JuggleSpawner(private val boardWidth: Float, private val boardHeight: Float) {
 
-    fun pickObjectType(act: Int): ObjectType {
-        val rolled = Random.nextInt(100)
-        return when (act) {
-            2 -> when {
-                rolled < 22 -> ObjectType.GRAPES
-                rolled < 40 -> ObjectType.CHERRIES
-                rolled < 58 -> ObjectType.ORANGE
-                rolled < 70 -> ObjectType.JOKER_HAT
-                rolled < 80 -> ObjectType.GOLD_STAR
-                rolled < 88 -> ObjectType.LUCKY_7
-                else -> ObjectType.GOLD_X
-            }
+    private var nextId = 1
+    private var nextSpawnTime = 15_000L
 
-            3 -> when {
-                rolled < 18 -> ObjectType.GRAPES
-                rolled < 33 -> ObjectType.CHERRIES
-                rolled < 48 -> ObjectType.ORANGE
-                rolled < 60 -> ObjectType.JOKER_HAT
-                rolled < 68 -> ObjectType.GOLD_STAR
-                rolled < 75 -> ObjectType.LUCKY_7
-                else -> ObjectType.GOLD_X
-            }
+    fun spawnWeights(airborneCount: Int): Map<ObjectType, Int> = mapOf(
+        ObjectType.GRAPES to 25,
+        ObjectType.CHERRIES to 20,
+        ObjectType.ORANGE to 18,
+        ObjectType.JOKER_HAT to 12,
+        ObjectType.GOLD_STAR to 10,
+        ObjectType.LUCKY_7 to 8,
+        ObjectType.GOLD_X to if (airborneCount >= 4) 7 else 0
+    )
 
-            else -> when {
-                rolled < 30 -> ObjectType.GRAPES
-                rolled < 55 -> ObjectType.CHERRIES
-                rolled < 75 -> ObjectType.ORANGE
-                rolled < 85 -> ObjectType.JOKER_HAT
-                rolled < 95 -> ObjectType.GOLD_STAR
-                rolled < 100 -> ObjectType.LUCKY_7
-                else -> ObjectType.GOLD_X
-            }
-        }
+    fun launchObject(type: ObjectType): JuggleObject {
+        val startX = Random.nextFloat() * (boardWidth * 0.6f) + boardWidth * 0.2f
+        return JuggleObject(
+            id = nextId++,
+            type = type,
+            x = startX,
+            y = boardHeight * 0.85f,
+            velocityX = Random.nextFloat() * 200f - 100f,
+            velocityY = initialLaunchVelocity(type)
+        )
     }
 
-    fun getSpawnInterval(excitement: Float): Long {
-        return when {
-            excitement < 25f -> 1800L
-            excitement < 50f -> 1400L
-            excitement < 75f -> 1000L
-            else -> 700L
-        }
+    private fun initialLaunchVelocity(type: ObjectType): Float = when (type) {
+        ObjectType.CHERRIES -> -1500f
+        ObjectType.ORANGE -> -1000f
+        ObjectType.GOLD_X -> -1200f
+        else -> -1300f
     }
 
-    fun maxSimultaneous(act: Int): Int {
-        return when (act) {
-            1 -> 3
-            2 -> 5
-            3 -> 7
-            else -> 3
+    fun tick(elapsedMs: Long, airborneCount: Int): ObjectType? {
+        if (airborneCount >= 7) return null
+        if (elapsedMs >= nextSpawnTime) {
+            nextSpawnTime += 15_000L
+            return weightedRandom(spawnWeights(airborneCount))
         }
+        return null
     }
 
-    fun spawnObject(boardWidth: Float, act: Int): FallingObject {
-        val type = pickObjectType(act)
-        val radius = objectRadius(type)
-        val minX = radius + 40f
-        val maxX = boardWidth - radius - 40f
-        val x = if (maxX > minX) {
-            Random.nextFloat() * (maxX - minX) + minX
-        } else {
-            minX
+    private fun weightedRandom(weights: Map<ObjectType, Int>): ObjectType {
+        val total = weights.values.sum()
+        if (total <= 0) return ObjectType.GRAPES
+        var rolled = Random.nextInt(total)
+        for ((type, weight) in weights) {
+            if (rolled < weight) return type
+            rolled -= weight
         }
-        return spawnAt(type, x, act)
+        return ObjectType.GRAPES
+    }
+
+    fun reset() {
+        nextSpawnTime = 15_000L
     }
 }

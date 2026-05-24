@@ -3,7 +3,6 @@ package app.krafted.jokersjuggle.ui
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -17,23 +16,22 @@ import app.krafted.jokersjuggle.viewmodel.GameViewModel
 
 @Composable
 fun GameScreen(
-    act: Int,
-    onActComplete: (Int, Int) -> Unit,
-    onGameOver: () -> Unit,
+    onGameOver: (score: Int, timeSurvivedSeconds: Int, maxObjectsReached: Int) -> Unit,
     vm: GameViewModel = viewModel()
 ) {
     val ui by vm.uiState.collectAsState()
-    LaunchedEffect(act) { vm.setAct(act) }
     Box(Modifier.fillMaxSize()) {
         AndroidView(
-            factory = { ctx -> JuggleGameView(ctx) },
-            update = { v ->
-                v.act = act
-                v.onActComplete = onActComplete
-                v.onGameOver = onGameOver
-                v.onStateSnapshot = { vm.onSnapshot(it) }
-                v.onJokerEvent = { vm.onJokerEvent(it) }
+            factory = { ctx ->
+                JuggleGameView(ctx).apply {
+                    this.onGameOver = { score, elapsedSeconds, maxObjects ->
+                        onGameOver(score, elapsedSeconds, maxObjects)
+                    }
+                    this.onStateSnapshot = { vm.onSnapshot(it) }
+                    this.onJokerEvent = { vm.onJokerEvent(it) }
+                }
             },
+            update = { _ -> },
             modifier = Modifier.fillMaxSize()
         )
         HudOverlay(ui, Modifier.align(Alignment.TopCenter))

@@ -1,45 +1,53 @@
 package app.krafted.jokersjuggle.game
 
+import kotlin.math.abs
 import kotlin.math.sin
 import kotlin.random.Random
 
 object PhysicsEngine {
-    const val GRAVITY: Float = 0.35f
-    const val WOBBLE_AMPLITUDE: Float = 1.5f
-    const val WOBBLE_SPEED: Float = 0.12f
-    const val CHERRY_DRIFT: Float = 0.5f
+    const val GRAVITY = 1200f
 
-    private val random = Random.Default
+    fun update(obj: JuggleObject, boardWidth: Float, deltaTime: Float, gravityMultiplier: Float = 1f) {
+        val effectiveGravity = GRAVITY * gravityMultiplier
 
-    fun update(obj: FallingObject, boardWidth: Float, speedMultiplier: Float = 1f) {
-        when (obj.type) {
-            ObjectType.GRAPES -> {
-                obj.wobblePhase += WOBBLE_SPEED
-                obj.x += sin(obj.wobblePhase) * WOBBLE_AMPLITUDE
-            }
+        obj.velocityY += effectiveGravity * deltaTime
 
-            ObjectType.CHERRIES -> {
-                obj.velocityX += (random.nextFloat() * 2f - 1f) * CHERRY_DRIFT
-            }
+        val gravityMod = when (obj.type) {
+            ObjectType.CHERRIES -> 0.6f
+            ObjectType.ORANGE -> 1.4f
+            ObjectType.GOLD_X -> 1.6f
+            else -> 1.0f
+        }
+        obj.velocityY += effectiveGravity * (gravityMod - 1f) * deltaTime
 
-            ObjectType.ORANGE -> {
-                obj.velocityX = 0f
-            }
+        obj.x += obj.velocityX * deltaTime
+        obj.y += obj.velocityY * deltaTime
 
-            ObjectType.GOLD_X, ObjectType.JOKER_HAT, ObjectType.GOLD_STAR, ObjectType.LUCKY_7 -> {}
+        obj.rotationAngle += when (obj.type) {
+            ObjectType.JOKER_HAT -> 180f * deltaTime
+            ObjectType.LUCKY_7 -> 90f * deltaTime
+            else -> 30f * deltaTime
         }
 
-        obj.velocityY += GRAVITY * obj.type.gravityMultiplier
+        if (obj.type == ObjectType.GRAPES) {
+            obj.wobblePhase += deltaTime * 3f
+            obj.x += sin(obj.wobblePhase) * 1.2f
+        }
 
-        obj.y += obj.velocityY * speedMultiplier
-        obj.x += obj.velocityX
+        if (obj.type == ObjectType.LUCKY_7 && obj.velocityY < 0 &&
+            Random.nextFloat() < 0.01f
+        ) {
+            obj.velocityX *= -1f
+        }
 
-        val minX = obj.radius
-        val maxX = boardWidth - obj.radius
-        val clamped = obj.x.coerceIn(minX, maxX)
-        if (clamped != obj.x) {
-            obj.x = clamped
-            obj.velocityX = 0f
+        val radius = obj.radius
+        if (obj.x < radius) {
+            obj.x = radius
+            obj.velocityX = abs(obj.velocityX)
+        }
+        if (obj.x > boardWidth - radius) {
+            obj.x = boardWidth - radius
+            obj.velocityX = -abs(obj.velocityX)
         }
     }
 }

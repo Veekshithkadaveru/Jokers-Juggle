@@ -75,6 +75,9 @@ private fun faceFor(expression: JokerExpression): FaceSpec = when (expression) {
     JokerExpression.THEATRICAL -> FaceSpec(Gold, EyeShape.DIAMOND, MouthShape.SMIRK, 0f)
     JokerExpression.TRIUMPHANT -> FaceSpec(Color(0xFFFFD860), EyeShape.DIAMOND, MouthShape.SMIRK, -1f)
     JokerExpression.GENUINE -> FaceSpec(Color(0xFFFFF0C0), EyeShape.DIAMOND, MouthShape.SMIRK, 0f)
+    JokerExpression.SURPRISED -> FaceSpec(Color(0xFFFFEC80), EyeShape.WIDE, MouthShape.OPEN, 0f)
+    JokerExpression.TAUNTING -> FaceSpec(Color(0xFFFF4A30), EyeShape.NARROW, MouthShape.SMIRK, -2f)
+    JokerExpression.RESPECTFUL -> FaceSpec(Color(0xFFFFF0C0), EyeShape.DIAMOND, MouthShape.LINE, 0f)
 }
 
 @Composable

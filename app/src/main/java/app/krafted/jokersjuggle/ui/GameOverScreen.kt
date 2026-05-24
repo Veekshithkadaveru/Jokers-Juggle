@@ -12,11 +12,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import app.krafted.jokersjuggle.ui.theme.StageDark
 
 @Composable
 fun GameOverScreen(
+    score: Int,
+    timeSurvivedSeconds: Int,
+    maxObjectsReached: Int,
     onReplayClick: () -> Unit,
     onHomeClick: () -> Unit
 ) {
@@ -27,8 +33,24 @@ fun GameOverScreen(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = "Game Over", color = Color.White)
+        Text(
+            text = "GAME OVER",
+            color = Color(0xFFC91A1A),
+            fontSize = 32.sp,
+            fontWeight = FontWeight.Bold,
+            fontFamily = FontFamily.Serif
+        )
         Spacer(modifier = Modifier.height(24.dp))
+
+        Text(text = "Final Score: $score", color = Color.White, fontSize = 20.sp)
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(text = "Time Survived: ${formatTime(timeSurvivedSeconds)}", color = Color.White, fontSize = 16.sp)
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(text = "Max Objects: $maxObjectsReached", color = Color.White, fontSize = 16.sp)
+        Spacer(modifier = Modifier.height(32.dp))
+
         Button(onClick = onReplayClick) {
             Text(text = "Replay")
         }
@@ -37,4 +59,10 @@ fun GameOverScreen(
             Text(text = "Home")
         }
     }
+}
+
+private fun formatTime(seconds: Int): String {
+    val mins = seconds / 60
+    val secs = seconds % 60
+    return "%02d:%02d".format(mins, secs)
 }
