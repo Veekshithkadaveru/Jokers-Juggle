@@ -47,13 +47,12 @@ fun HomeScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 16.dp, vertical = 24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.SpaceEvenly
             ) {
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(2.dp))
 
-                // Marquee Header Frame
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -64,76 +63,71 @@ fun HomeScreen(
                             )
                         )
                         .border(1.dp, Gold, RoundedCornerShape(6.dp))
-                        .padding(14.dp)
+                        .padding(10.dp)
                 ) {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         MarqueeBulbs(count = 14)
-                        Spacer(modifier = Modifier.height(10.dp))
+                        Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             text = "★  TONIGHT ONLY  ★",
                             color = Gold,
-                            fontSize = 9.sp,
+                            fontSize = 8.sp,
                             fontFamily = SpaceGrotesk,
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 3.sp
                         )
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(4.dp))
                         Image(
                             painter = painterResource(id = R.drawable.jok021_sym_4),
                             contentDescription = null,
-                            modifier = Modifier
-                                .size(64.dp)
+                            modifier = Modifier.size(48.dp)
                         )
-                        Spacer(modifier = Modifier.height(4.dp))
+                        Spacer(modifier = Modifier.height(2.dp))
                         Text(
                             text = "Joker's",
                             color = CreamText,
-                            fontSize = 30.sp,
+                            fontSize = 24.sp,
                             fontFamily = DMSerifDisplay,
-                            lineHeight = 30.sp
+                            lineHeight = 24.sp
                         )
                         Text(
                             text = "Juggle",
                             color = Gold,
-                            fontSize = 44.sp,
+                            fontSize = 36.sp,
                             fontFamily = DMSerifDisplay,
                             fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
-                            lineHeight = 44.sp,
+                            lineHeight = 36.sp,
                             modifier = Modifier.offset(y = (-2).dp)
                         )
-                        Spacer(modifier = Modifier.height(6.dp))
+                        Spacer(modifier = Modifier.height(2.dp))
                         Text(
                             text = "A · TWO-THUMB · CIRCUS",
                             color = Gold.copy(alpha = 0.8f),
-                            fontSize = 9.sp,
+                            fontSize = 8.sp,
                             fontFamily = SpaceGrotesk,
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 2.sp
                         )
-                        Spacer(modifier = Modifier.height(10.dp))
+                        Spacer(modifier = Modifier.height(4.dp))
                         MarqueeBulbs(count = 14)
                     }
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // Joker silhouette centerpiece on plinth
                 Box(
                     contentAlignment = Alignment.BottomCenter,
-                    modifier = Modifier.height(150.dp)
+                    modifier = Modifier.height(100.dp)
                 ) {
                     JokerPortrait(
                         expression = JokerExpression.THEATRICAL,
-                        portraitSize = 120.dp
+                        portraitSize = 80.dp
                     )
-                    // Plinth base shadow
                     Box(
                         modifier = Modifier
-                            .width(180.dp)
-                            .height(8.dp)
+                            .width(120.dp)
+                            .height(6.dp)
                             .background(
                                 Brush.radialGradient(
                                     colors = listOf(Gold.copy(alpha = 0.3f), Color.Transparent)
@@ -142,128 +136,121 @@ fun HomeScreen(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // Best per act / high scores section header
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    GoldFlourish(width = 60.dp)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "BEST PERFORMANCES",
-                        color = Gold.copy(alpha = 0.8f),
-                        fontSize = 9.sp,
-                        fontFamily = SpaceGrotesk,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 2.sp
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    GoldFlourish(width = 60.dp, flip = true)
-                }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    // Card 1: Best Score
-                    PlaybillCard(
-                        modifier = Modifier.weight(1f)
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
                     ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(
-                                text = "BEST SCORE",
-                                color = Gold,
-                                fontSize = 8.sp,
-                                fontFamily = SpaceGrotesk,
-                                fontWeight = FontWeight.Bold,
-                                letterSpacing = 1.sp,
-                                textAlign = TextAlign.Center
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = bestScore.toString(),
-                                color = CreamText,
-                                fontSize = 18.sp,
-                                fontFamily = DMSerifDisplay,
-                                fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
-                                fontWeight = FontWeight.Bold,
-                                textAlign = TextAlign.Center
-                            )
-                        }
+                        GoldFlourish(width = 50.dp)
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = "BEST PERFORMANCES",
+                            color = Gold.copy(alpha = 0.8f),
+                            fontSize = 8.sp,
+                            fontFamily = SpaceGrotesk,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 2.sp
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        GoldFlourish(width = 50.dp, flip = true)
                     }
 
-                    // Card 2: Longest Run
-                    PlaybillCard(
-                        modifier = Modifier.weight(1f)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.fillMaxWidth()
+                        PlaybillCard(
+                            modifier = Modifier.weight(1f)
                         ) {
-                            Text(
-                                text = "LONGEST RUN",
-                                color = Gold,
-                                fontSize = 8.sp,
-                                fontFamily = SpaceGrotesk,
-                                fontWeight = FontWeight.Bold,
-                                letterSpacing = 1.sp,
-                                textAlign = TextAlign.Center
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = formatTime(longestTime),
-                                color = CreamText,
-                                fontSize = 18.sp,
-                                fontFamily = DMSerifDisplay,
-                                fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
-                                fontWeight = FontWeight.Bold,
-                                textAlign = TextAlign.Center
-                            )
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(
+                                    text = "BEST SCORE",
+                                    color = Gold,
+                                    fontSize = 8.sp,
+                                    fontFamily = SpaceGrotesk,
+                                    fontWeight = FontWeight.Bold,
+                                    letterSpacing = 0.5.sp,
+                                    textAlign = TextAlign.Center
+                                )
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    text = bestScore.toString(),
+                                    color = CreamText,
+                                    fontSize = 15.sp,
+                                    fontFamily = DMSerifDisplay,
+                                    fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+                                    fontWeight = FontWeight.Bold,
+                                    textAlign = TextAlign.Center
+                                )
+                            }
                         }
-                    }
 
-                    // Card 3: Max Juggled
-                    PlaybillCard(
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.fillMaxWidth()
+                        PlaybillCard(
+                            modifier = Modifier.weight(1f)
                         ) {
-                            Text(
-                                text = "MAX JUGGLED",
-                                color = Gold,
-                                fontSize = 8.sp,
-                                fontFamily = SpaceGrotesk,
-                                fontWeight = FontWeight.Bold,
-                                letterSpacing = 1.sp,
-                                textAlign = TextAlign.Center
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = "$maxObjects obj",
-                                color = CreamText,
-                                fontSize = 16.sp,
-                                fontFamily = DMSerifDisplay,
-                                fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
-                                fontWeight = FontWeight.Bold,
-                                textAlign = TextAlign.Center
-                            )
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(
+                                    text = "LONGEST RUN",
+                                    color = Gold,
+                                    fontSize = 8.sp,
+                                    fontFamily = SpaceGrotesk,
+                                    fontWeight = FontWeight.Bold,
+                                    letterSpacing = 0.5.sp,
+                                    textAlign = TextAlign.Center
+                                )
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    text = formatTime(longestTime),
+                                    color = CreamText,
+                                    fontSize = 15.sp,
+                                    fontFamily = DMSerifDisplay,
+                                    fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+                                    fontWeight = FontWeight.Bold,
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+                        }
+
+                        PlaybillCard(
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(
+                                    text = "MAX JUGGLED",
+                                    color = Gold,
+                                    fontSize = 8.sp,
+                                    fontFamily = SpaceGrotesk,
+                                    fontWeight = FontWeight.Bold,
+                                    letterSpacing = 0.5.sp,
+                                    textAlign = TextAlign.Center
+                                )
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    text = "$maxObjects obj",
+                                    color = CreamText,
+                                    fontSize = 13.sp,
+                                    fontFamily = DMSerifDisplay,
+                                    fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+                                    fontWeight = FontWeight.Bold,
+                                    textAlign = TextAlign.Center
+                                )
+                            }
                         }
                     }
                 }
 
-                Spacer(modifier = Modifier.height(32.dp))
-
-                // Play Button
                 PrimaryButton(
                     onClick = onPlayClick,
                     accent = ButtonAccent.GOLD,
@@ -272,7 +259,7 @@ fun HomeScreen(
                     Text(
                         text = "▶   TAKE THE STAGE",
                         color = Color(0xFF2A0408),
-                        fontSize = 20.sp,
+                        fontSize = 18.sp,
                         fontFamily = DMSerifDisplay,
                         fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
                         fontWeight = FontWeight.Bold,
@@ -280,19 +267,15 @@ fun HomeScreen(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(14.dp))
-
                 Row(
                     modifier = Modifier
-                        .fillMaxWidth(0.9f)
-                        .padding(bottom = 24.dp),
+                        .fillMaxWidth(0.9f),
                     horizontalArrangement = Arrangement.Center
                 ) {
-                    // Leaderboard Button
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(48.dp)
+                            .height(44.dp)
                             .clip(RoundedCornerShape(4.dp))
                             .background(Color.Transparent)
                             .border(1.dp, Gold.copy(alpha = 0.4f), RoundedCornerShape(4.dp))
@@ -302,17 +285,18 @@ fun HomeScreen(
                         Text(
                             text = "♠  LEADERBOARD",
                             color = Gold,
-                            fontSize = 12.sp,
+                            fontSize = 11.sp,
                             fontFamily = SpaceGrotesk,
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 2.sp
                         )
                     }
                 }
+
+                Spacer(modifier = Modifier.height(2.dp))
             }
         }
 
-        // Curtain Drapes Overlay (Fades/Slides open upon creation)
         CurtainDrapes(isOpen = curtainOpen)
     }
 }

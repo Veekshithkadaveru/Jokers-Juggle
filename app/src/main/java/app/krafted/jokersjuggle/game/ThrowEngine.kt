@@ -13,10 +13,10 @@ object ThrowEngine {
             .coerceIn(MIN_THROW_VELOCITY, MAX_THROW_VELOCITY)
 
         val baseThrowY = when (obj.type) {
-            ObjectType.CHERRIES -> -1400f
-            ObjectType.ORANGE -> -900f
-            ObjectType.GOLD_X -> -1100f
-            else -> -1200f
+            ObjectType.CHERRIES -> -1100f
+            ObjectType.ORANGE -> -750f
+            ObjectType.GOLD_X -> -900f
+            else -> -950f
         }
 
         obj.velocityY = baseThrowY - (throwStrength * 0.3f)

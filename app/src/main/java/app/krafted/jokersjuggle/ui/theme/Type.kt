@@ -20,7 +20,6 @@ val DMSerifDisplay = FontFamily(
     Font(R.font.dm_serif_display_regular, FontWeight.Normal)
 )
 
-// Set of Material typography styles to start with
 val Typography = Typography(
     displayLarge = TextStyle(
         fontFamily = DMSerifDisplay,

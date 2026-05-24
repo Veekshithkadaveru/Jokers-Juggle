@@ -30,10 +30,10 @@ class JuggleSpawner(private val boardWidth: Float, private val boardHeight: Floa
     }
 
     private fun initialLaunchVelocity(type: ObjectType): Float = when (type) {
-        ObjectType.CHERRIES -> -1500f
-        ObjectType.ORANGE -> -1000f
-        ObjectType.GOLD_X -> -1200f
-        else -> -1300f
+        ObjectType.CHERRIES -> -1200f
+        ObjectType.ORANGE -> -800f
+        ObjectType.GOLD_X -> -950f
+        else -> -1050f
     }
 
     fun tick(elapsedMs: Long, airborneCount: Int): ObjectType? {

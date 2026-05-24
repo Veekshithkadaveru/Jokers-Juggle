@@ -233,7 +233,6 @@ private fun TimerObjectsRow(state: GameUiState) {
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Survival Timer
         Text(
             text = "⏱ ${formatTime(state.elapsedSeconds)}",
             color = CreamText,
@@ -242,7 +241,6 @@ private fun TimerObjectsRow(state: GameUiState) {
             fontWeight = FontWeight.SemiBold
         )
 
-        // Airborne count
         Text(
             text = "Objects: ${state.airborneCount}",
             color = Gold,
@@ -252,7 +250,6 @@ private fun TimerObjectsRow(state: GameUiState) {
         )
 
         Row(verticalAlignment = Alignment.CenterVertically) {
-            // Gold Star 2x Active state
             if (state.isGoldStarActive) {
                 Text(
                     text = "★ 2× · ${state.goldStarSecondsLeft}s",
@@ -269,7 +266,6 @@ private fun TimerObjectsRow(state: GameUiState) {
                 )
             }
 
-            // Next spawner countdown
             Text(
                 text = "Next: ${state.nextObjectCountdown}s",
                 color = if (state.nextObjectCountdown <= 3) WarningOrange else CreamText,

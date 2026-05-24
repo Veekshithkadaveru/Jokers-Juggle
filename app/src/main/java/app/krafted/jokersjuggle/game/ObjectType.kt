@@ -22,11 +22,11 @@ val ObjectType.points: Int
     }
 
 fun objectRadius(type: ObjectType): Float = when (type) {
-    ObjectType.ORANGE -> 46f
-    ObjectType.GOLD_X -> 44f
-    ObjectType.JOKER_HAT -> 42f
-    ObjectType.GRAPES -> 40f
-    ObjectType.LUCKY_7 -> 40f
-    ObjectType.GOLD_STAR -> 38f
-    ObjectType.CHERRIES -> 34f
+    ObjectType.ORANGE -> 90f
+    ObjectType.GOLD_X -> 87f
+    ObjectType.JOKER_HAT -> 83f
+    ObjectType.GRAPES -> 78f
+    ObjectType.LUCKY_7 -> 78f
+    ObjectType.GOLD_STAR -> 74f
+    ObjectType.CHERRIES -> 67f
 }

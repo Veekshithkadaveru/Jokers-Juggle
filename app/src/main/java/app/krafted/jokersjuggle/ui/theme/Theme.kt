@@ -25,7 +25,7 @@ private val DarkColorScheme = darkColorScheme(
 @Suppress("DEPRECATION")
 @Composable
 fun JokersJuggleTheme(
-    darkTheme: Boolean = true, // Force dark theme by default
+    darkTheme: Boolean = true,
     content: @Composable () -> Unit
 ) {
     val colorScheme = DarkColorScheme

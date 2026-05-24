@@ -12,8 +12,8 @@ class Hand(val isLeft: Boolean) {
     var velocity: Float = 0f
     var currentSpeed: Float = 0f
 
-    val catchWidth = 140f
-    val catchHeight = 60f
+    val catchWidth = 280f
+    val catchHeight = 120f
 
     var scaleX: Float = 1f
     var scaleY: Float = 1f
@@ -60,7 +60,7 @@ class Hand(val isLeft: Boolean) {
 
     fun triggerCatchAnimation(isBomb: Boolean = false) {
         state = HandState.CATCH
-        stateTimerMs = 120L // slightly longer catch hold time
+        stateTimerMs = 120L
 
         if (isBomb) {
             scaleY = 0.5f

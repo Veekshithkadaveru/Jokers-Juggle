@@ -47,9 +47,6 @@ import kotlinx.coroutines.delay
 import kotlin.math.PI
 import kotlin.math.sin
 
-// ─────────────────────────────────────────────────────────────
-// Gold Flourish Ornament (Art Nouveau style)
-// ─────────────────────────────────────────────────────────────
 @Composable
 fun GoldFlourish(
     modifier: Modifier = Modifier,
@@ -73,7 +70,6 @@ fun GoldFlourish(
                 rotate(180f)
             }
         }) {
-            // Draw lines
             drawLine(
                 color = color,
                 start = Offset(20f * scaleX, 10f * scaleY),
@@ -89,7 +85,6 @@ fun GoldFlourish(
                 cap = StrokeCap.Round
             )
 
-            // Curved paths Q80 10 Q88 4 96 10 Q104 16 100 10 Q96 4 92 10
             val path1 = Path().apply {
                 moveTo(80f * scaleX, 10f * scaleY)
                 quadraticBezierTo(88f * scaleX, 4f * scaleY, 96f * scaleX, 10f * scaleY)
@@ -98,7 +93,6 @@ fun GoldFlourish(
             }
             drawPath(path = path1, color = color, style = Stroke(width = 1f * scaleX, cap = StrokeCap.Round))
 
-            // M120 10 Q112 4 104 10 Q96 16 100 10 Q104 4 108 10
             val path2 = Path().apply {
                 moveTo(120f * scaleX, 10f * scaleY)
                 quadraticBezierTo(112f * scaleX, 4f * scaleY, 104f * scaleX, 10f * scaleY)
@@ -107,16 +101,13 @@ fun GoldFlourish(
             }
             drawPath(path = path2, color = color, style = Stroke(width = 1f * scaleX, cap = StrokeCap.Round))
 
-            // Circles at center
             drawCircle(color = color, radius = 2.5f * scaleX, center = Offset(100f * scaleX, 10f * scaleY))
             drawCircle(color = color, radius = 5f * scaleX, center = Offset(100f * scaleX, 10f * scaleY), style = Stroke(width = 1f * scaleX))
 
-            // Left end arrows
             drawLine(color = color, start = Offset(20f * scaleX, 10f * scaleY), end = Offset(14f * scaleX, 6f * scaleY), strokeWidth = 1f * scaleX, cap = StrokeCap.Round)
             drawLine(color = color, start = Offset(20f * scaleX, 10f * scaleY), end = Offset(14f * scaleX, 14f * scaleY), strokeWidth = 1f * scaleX, cap = StrokeCap.Round)
             drawCircle(color = color, radius = 1.5f * scaleX, center = Offset(14f * scaleX, 10f * scaleY))
 
-            // Right end arrows
             drawLine(color = color, start = Offset(180f * scaleX, 10f * scaleY), end = Offset(186f * scaleX, 6f * scaleY), strokeWidth = 1f * scaleX, cap = StrokeCap.Round)
             drawLine(color = color, start = Offset(180f * scaleX, 10f * scaleY), end = Offset(186f * scaleX, 14f * scaleY), strokeWidth = 1f * scaleX, cap = StrokeCap.Round)
             drawCircle(color = color, radius = 1.5f * scaleX, center = Offset(186f * scaleX, 10f * scaleY))
@@ -124,9 +115,6 @@ fun GoldFlourish(
     }
 }
 
-// ─────────────────────────────────────────────────────────────
-// Marquee Bulbs Border
-// ─────────────────────────────────────────────────────────────
 @Composable
 fun MarqueeBulbs(
     count: Int = 14,
@@ -169,7 +157,6 @@ fun MarqueeBulbs(
                 modifier = Modifier
                     .size(6.dp)
                     .drawBehind {
-                        // Bulb background radial gradient simulation
                         drawCircle(
                             brush = Brush.radialGradient(
                                 colors = listOf(color.copy(alpha = alpha), Color(0xFFB88018).copy(alpha = alpha)),
@@ -177,7 +164,6 @@ fun MarqueeBulbs(
                                 radius = size.minDimension / 2
                             )
                         )
-                        // Glow shadow
                         drawCircle(
                             color = color.copy(alpha = alpha * 0.4f),
                             radius = (size.minDimension / 2) + glowRadius
@@ -188,9 +174,6 @@ fun MarqueeBulbs(
     }
 }
 
-// ─────────────────────────────────────────────────────────────
-// Playbill/Ticket-Stub Styled Card
-// ─────────────────────────────────────────────────────────────
 @Composable
 fun PlaybillCard(
     modifier: Modifier = Modifier,
@@ -213,12 +196,10 @@ fun PlaybillCard(
             .shadowCard(accent = accent, bgBrush = bgBrush)
             .padding(14.dp)
     ) {
-        // Corner Ornaments
-        Canvas(modifier = Modifier.fillMaxSize()) {
+        Canvas(modifier = Modifier.matchParentSize()) {
             val w = size.width
             val h = size.height
 
-            // We draw the 4 corner ornament shapes
             val corners = listOf(
                 Offset(0f, 0f) to RotateFlip(0f, 1f, 1f),
                 Offset(w, 0f) to RotateFlip(90f, -1f, 1f),
@@ -259,7 +240,6 @@ private data class RotateFlip(val angle: Float, val scaleX: Float, val scaleY: F
 
 private fun Modifier.shadowCard(accent: Color, bgBrush: Brush): Modifier = this.drawBehind {
     val r = 8.dp.toPx()
-    // Outer border
     drawRoundRect(
         brush = bgBrush,
         cornerRadius = CornerRadius(r, r)
@@ -269,7 +249,6 @@ private fun Modifier.shadowCard(accent: Color, bgBrush: Brush): Modifier = this.
         cornerRadius = CornerRadius(r, r),
         style = Stroke(width = 1.dp.toPx())
     )
-    // Inset line shadow simulation
     drawRoundRect(
         color = Color.Black.copy(alpha = 0.3f),
         cornerRadius = CornerRadius(r - 4f, r - 4f),
@@ -279,9 +258,6 @@ private fun Modifier.shadowCard(accent: Color, bgBrush: Brush): Modifier = this.
     )
 }
 
-// ─────────────────────────────────────────────────────────────
-// Spotlight Cone Ambient Background
-// ─────────────────────────────────────────────────────────────
 @Composable
 fun SpotlightCone(
     modifier: Modifier = Modifier,
@@ -327,9 +303,6 @@ fun SpotlightCone(
     }
 }
 
-// ─────────────────────────────────────────────────────────────
-// Drifting Ambient Dust Particles
-// ─────────────────────────────────────────────────────────────
 @Composable
 fun DustParticles(
     count: Int = 18,
@@ -337,7 +310,6 @@ fun DustParticles(
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "dust")
     
-    // We animate a single phase factor to drive all particle drifting
     val phase by infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 2f * PI.toFloat(),
@@ -353,7 +325,6 @@ fun DustParticles(
         val h = size.height
 
         for (i in 0 until count) {
-            // Semi-random parameters based on index
             val xSeed = (i * 17 + 7) % 100
             val ySeed = (i * 29 + 13) % 100
             val sizeRadius = (1 + (i % 3)).dp.toPx()
@@ -379,12 +350,9 @@ fun DustParticles(
     }
 }
 
-// ─────────────────────────────────────────────────────────────
-// Stage Curtain Drapes
-// ─────────────────────────────────────────────────────────────
 @Composable
 fun CurtainDrapes(
-    isOpen: Float, // 0f = closed, 1f = open
+    isOpen: Float,
     modifier: Modifier = Modifier
 ) {
     val animatedOpen by animateFloatAsState(
@@ -399,12 +367,10 @@ fun CurtainDrapes(
         val density = LocalDensity.current
 
         Canvas(modifier = Modifier.fillMaxSize()) {
-            // Each curtain drape takes (1 - open) * 50% width + open * 0dp overlap
             val drapeMaxW = w * 0.5f
             val openOverlap = 0.dp.toPx()
             val curtainW = drapeMaxW * (1f - animatedOpen) + (animatedOpen * openOverlap)
 
-            // Draw Left Curtain
             drawRect(
                 brush = Brush.verticalGradient(
                     colors = listOf(Color(0xFF3A0810), Color(0xFF7A1521), Color(0xFF3A0810))
@@ -412,7 +378,6 @@ fun CurtainDrapes(
                 topLeft = Offset(0f, 0f),
                 size = Size(curtainW, h)
             )
-            // Left curtain shadow overlay to simulate folds
             drawRect(
                 brush = Brush.horizontalGradient(
                     colors = listOf(
@@ -424,7 +389,6 @@ fun CurtainDrapes(
                 topLeft = Offset(0f, 0f),
                 size = Size(curtainW, h)
             )
-            // Left curtain edge highlight line
             drawLine(
                 color = Color(0xFF2A0408),
                 start = Offset(curtainW - 2.dp.toPx(), 0f),
@@ -432,7 +396,6 @@ fun CurtainDrapes(
                 strokeWidth = 4.dp.toPx()
             )
 
-            // Draw Right Curtain
             val rightCurtainLeft = w - curtainW
             drawRect(
                 brush = Brush.verticalGradient(
@@ -441,7 +404,6 @@ fun CurtainDrapes(
                 topLeft = Offset(rightCurtainLeft, 0f),
                 size = Size(curtainW, h)
             )
-            // Right curtain shadow overlay
             drawRect(
                 brush = Brush.horizontalGradient(
                     colors = listOf(
@@ -453,7 +415,6 @@ fun CurtainDrapes(
                 topLeft = Offset(rightCurtainLeft, 0f),
                 size = Size(curtainW, h)
             )
-            // Right curtain edge highlight line
             drawLine(
                 color = Color(0xFF2A0408),
                 start = Offset(rightCurtainLeft + 2.dp.toPx(), 0f),
@@ -461,7 +422,6 @@ fun CurtainDrapes(
                 strokeWidth = 4.dp.toPx()
             )
 
-            // Top Valance Board (Fixed height 36dp)
             val valanceH = 34.dp.toPx()
             drawRect(
                 brush = Brush.verticalGradient(
@@ -470,7 +430,6 @@ fun CurtainDrapes(
                 topLeft = Offset(0f, 0f),
                 size = Size(w, valanceH)
             )
-            // Top valance gold trim bottom line
             drawLine(
                 brush = Brush.horizontalGradient(
                     colors = listOf(Color.Transparent, Gold, Color(0xFFFFD860), Gold, Color.Transparent)
@@ -480,7 +439,6 @@ fun CurtainDrapes(
                 strokeWidth = 2.dp.toPx()
             )
 
-            // Scallop bottom valance path drawing
             val scallopW = 24.dp.toPx()
             val scallopH = 10.dp.toPx()
             val scallopCount = (w / scallopW).toInt() + 1
@@ -495,7 +453,6 @@ fun CurtainDrapes(
                 }
                 drawPath(path = scallopPath, color = Color(0xFF5A0E18))
                 
-                // Draw little gold balls hanging from scallops
                 drawCircle(
                     color = Gold,
                     radius = 2.dp.toPx(),
@@ -504,20 +461,17 @@ fun CurtainDrapes(
             }
         }
 
-        // Rope tassels (draw when open > 0.4 and not fully open)
         if (animatedOpen > 0.4f && animatedOpen < 0.95f) {
             val openOverlap = with(density) { 0.dp.toPx() }
             val tasselOffsetLeftPx = (w * 0.5f) * (1f - animatedOpen) + (animatedOpen * openOverlap)
             val tasselOffsetLeftDp = with(density) { (tasselOffsetLeftPx - 6.dp.toPx()).coerceAtLeast(0f).toDp() }
 
-            // Left Tassel
             TasselWidget(
                 modifier = Modifier
                     .align(Alignment.CenterStart)
                     .offset(x = tasselOffsetLeftDp, y = 0.dp)
             )
 
-            // Right Tassel
             TasselWidget(
                 modifier = Modifier
                     .align(Alignment.CenterEnd)
@@ -536,7 +490,6 @@ private fun TasselWidget(modifier: Modifier = Modifier) {
             .height(60.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Gold rope line
         Box(
             modifier = Modifier
                 .width(4.dp)
@@ -548,7 +501,6 @@ private fun TasselWidget(modifier: Modifier = Modifier) {
                     shape = RoundedCornerShape(2.dp)
                 )
         )
-        // Tassel Ball
         Box(
             modifier = Modifier
                 .size(14.dp)
@@ -561,7 +513,6 @@ private fun TasselWidget(modifier: Modifier = Modifier) {
                 )
                 .border(0.5.dp, MarqueeDim, RoundedCornerShape(7.dp))
         )
-        // Strands
         Box(
             modifier = Modifier
                 .width(6.dp)
@@ -569,20 +520,14 @@ private fun TasselWidget(modifier: Modifier = Modifier) {
                 .drawBehind {
                     val w = size.width
                     val h = size.height
-                    // Left strand
                     drawLine(Color(0xFFB88018), Offset(0f, 0f), Offset(0f, h), strokeWidth = 1.dp.toPx())
-                    // Center strand
                     drawLine(Color(0xFFB88018), Offset(w/2, 0f), Offset(w/2, h), strokeWidth = 1.dp.toPx())
-                    // Right strand
                     drawLine(Color(0xFFB88018), Offset(w, 0f), Offset(w, h), strokeWidth = 1.dp.toPx())
                 }
         )
     }
 }
 
-// ─────────────────────────────────────────────────────────────
-// Premium Stage Theme Button (CTA)
-// ─────────────────────────────────────────────────────────────
 @Composable
 fun PrimaryButton(
     onClick: () -> Unit,
@@ -619,11 +564,10 @@ fun PrimaryButton(
         )
     }
 
-    // Outer box that creates the 3D depth shadow
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(56.dp + 5.dp) // extra space for shadow
+            .height(56.dp + 5.dp)
             .clickable(
                 interactionSource = interactionSource,
                 indication = null,
@@ -631,7 +575,6 @@ fun PrimaryButton(
                 onClick = onClick
             )
     ) {
-        // Bottom Shadow plate
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -640,7 +583,6 @@ fun PrimaryButton(
                 .background(colors.shadowColor, shape = RoundedCornerShape(6.dp))
         )
 
-        // Main Button face (translates down when pressed)
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -649,7 +591,6 @@ fun PrimaryButton(
                 .background(colors.bgBrush, shape = RoundedCornerShape(6.dp))
                 .border(2.dp, colors.borderColor, shape = RoundedCornerShape(6.dp))
                 .drawBehind {
-                    // Shimmer top edge line
                     drawLine(
                         colors.highlightColor,
                         Offset(x = size.width * 0.1f, y = 1.dp.toPx()),
@@ -678,9 +619,6 @@ private data class ButtonColors(
     val highlightColor: Color
 )
 
-// ─────────────────────────────────────────────────────────────
-// Ambient Backdrop helper wrapper
-// ─────────────────────────────────────────────────────────────
 @Composable
 fun StageBackdrop(
     modifier: Modifier = Modifier,
@@ -693,7 +631,6 @@ fun StageBackdrop(
             .fillMaxSize()
             .background(StageDark)
     ) {
-        // Radial gradient stage vignette
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -711,9 +648,7 @@ fun StageBackdrop(
             SpotlightCone(leftPercent = 0.5f, tiltDegrees = 0f, intensity = 0.1f)
         }
 
-        // Card suits background watermark pattern
         Canvas(modifier = Modifier.fillMaxSize()) {
-            // Draw tiny card suits very faintly
             val paint = Paint().asFrameworkPaint().apply {
                 color = Gold.toArgb()
                 alpha = (255 * 0.035f).toInt()
@@ -739,9 +674,6 @@ fun StageBackdrop(
     }
 }
 
-// ─────────────────────────────────────────────────────────────
-// Typewriter animated text block
-// ─────────────────────────────────────────────────────────────
 @Composable
 fun Typewriter(
     text: String,
@@ -770,9 +702,6 @@ fun Typewriter(
     )
 }
 
-// ─────────────────────────────────────────────────────────────
-// Reusable JokerPortrait (Silhouette style with eye/mouth paths)
-// ─────────────────────────────────────────────────────────────
 private enum class EyeShape { DIAMOND, WIDE, NARROW, CLOSED }
 private enum class MouthShape { LINE, SMIRK, GRIN, OPEN, FROWN }
 
@@ -817,7 +746,6 @@ fun JokerPortrait(
             .size(portraitSize),
         contentAlignment = Alignment.Center
     ) {
-        // Glowing Backplate Spotlight (color-coded by expression mood)
         Box(
             modifier = Modifier
                 .size(portraitSize * 1.35f)
@@ -832,7 +760,6 @@ fun JokerPortrait(
                 )
         )
 
-        // Premium Framed Joker Image
         Image(
             painter = painterResource(id = R.drawable.joker_avatar),
             contentDescription = "Joker Portrait - ${expression.name}",

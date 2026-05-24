@@ -39,7 +39,7 @@ fun JokerReactionOverlay(state: GameUiState, modifier: Modifier = Modifier) {
 
         JokerPortrait(
             expression = state.jokerExpression,
-            portraitSize = 64.dp,
+            portraitSize = 90.dp,
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .padding(top = 56.dp, end = 8.dp)
@@ -50,9 +50,9 @@ fun JokerReactionOverlay(state: GameUiState, modifier: Modifier = Modifier) {
             QuoteBar(
                 quote = state.jokerQuote,
                 modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .fillMaxWidth(0.78f)
-                    .padding(start = 10.dp, bottom = 220.dp)
+                    .align(Alignment.TopStart)
+                    .fillMaxWidth(0.74f)
+                    .padding(start = 10.dp, top = 150.dp)
             )
         }
     }

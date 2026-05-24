@@ -231,7 +231,6 @@ class JuggleGameView @JvmOverloads constructor(
         }
         effects.removeIf { it.timeLeftMs <= 0L }
 
-        // Chaos events
         val chaosStarted = chaosEngine.update(deltaMs, elapsedMs, excitement, objects.size)
         if (chaosStarted != null) {
             val event = when (chaosStarted) {
@@ -255,7 +254,6 @@ class JuggleGameView @JvmOverloads constructor(
             }
         }
 
-        // Spawner Tick
         spawner?.let { sp ->
             val spawnedType = sp.tick(elapsedMs, objects.size)
             if (spawnedType != null) {
@@ -264,13 +262,11 @@ class JuggleGameView @JvmOverloads constructor(
             }
         }
 
-        // Excitement continuous rise
         audienceExcitement.update(objects.size, dropped = false, deltaSeconds)
 
         leftHand.update(deltaSeconds)
         rightHand.update(deltaSeconds)
 
-        // Hand Release detection
         if (leftHand.justReleased) {
             val caughtObj = objects.find { it.caughtByHand == leftHand }
             if (caughtObj != null) {
@@ -284,7 +280,6 @@ class JuggleGameView @JvmOverloads constructor(
             }
         }
         
-        // Physics update
         for (obj in objects) {
             val hand = obj.caughtByHand
             if (hand == null) {
@@ -298,7 +293,6 @@ class JuggleGameView @JvmOverloads constructor(
             }
         }
 
-        // Catch & Drop detection
         for (obj in objects) {
             if (obj.caughtByHand == null) {
                 val leftCaught = if (leftHand.state == HandState.IDLE) CatchDetector.checkCatch(obj, leftHand) else false
@@ -312,23 +306,20 @@ class JuggleGameView @JvmOverloads constructor(
             }
         }
 
-        // Track max objects reached
         if (objects.size > maxObjectsReached) {
             maxObjectsReached = objects.size
         }
 
-        // Score ticks (every second)
         scoreTickTimerMs += deltaMs
         if (scoreTickTimerMs >= 1000L) {
             scoreTickTimerMs -= 1000L
             onScoreTick()
         }
 
-        // 5+ objects for 30s check
         if (objects.size >= 5) {
             streak5ObjTimerMs += deltaMs
             if (streak5ObjTimerMs >= 30_000L) {
-                streak5ObjTimerMs = -99999999L // Trigger once per streak
+                streak5ObjTimerMs = -99999999L
                 onJokerEvent?.invoke(JokerEvent.STREAK_5_OBJ_30S)
             }
         } else {
@@ -345,7 +336,6 @@ class JuggleGameView @JvmOverloads constructor(
             }
         }
 
-        // Next object countdown calculation
         val nextSpawnTarget = ((elapsedMs / 15000L) + 1) * 15000L
         val countdownSeconds = ceil((nextSpawnTarget - elapsedMs) / 1000.0).toInt().coerceIn(1, 15)
 
@@ -378,7 +368,7 @@ class JuggleGameView @JvmOverloads constructor(
             maxObjectsStreak++
             if (maxObjectsStreak % 5 == 0) {
                 score += 100
-                onJokerEvent?.invoke(JokerEvent.OBJECT_ADDED_7) // Remind max objects streak
+                onJokerEvent?.invoke(JokerEvent.OBJECT_ADDED_7)
             }
         } else {
             maxObjectsStreak = 0
@@ -392,15 +382,15 @@ class JuggleGameView @JvmOverloads constructor(
         4 -> 3
         5 -> 4
         6 -> 5
-        else -> 7 // Jackpot multiplier
+        else -> 7
     }
 
     private fun handleCatch(obj: JuggleObject, hand: Hand) {
         if (obj.type == ObjectType.GOLD_X) {
             lives--
             hand.triggerCatchAnimation(isBomb = true)
-            objects.remove(obj) // Bomb is consumed/removed
-            flashColor = 0x80C91A1A.toInt() // Red screen flash
+            objects.remove(obj)
+            flashColor = 0x80C91A1A.toInt()
             flashTimeLeftMs = 300L
             effects.add(GameEffect(EffectType.CRACK, obj.x, obj.y, 600L, 600L))
             onJokerEvent?.invoke(JokerEvent.GOLD_X_CAUGHT)
@@ -414,22 +404,19 @@ class JuggleGameView @JvmOverloads constructor(
             return
         }
 
-        // Lock the object to the hand
         obj.caughtByHand = hand
         hand.triggerCatchAnimation(isBomb = false)
     }
 
     private fun handleThrow(obj: JuggleObject, hand: Hand) {
-        // Calculate throw velocities & check perfect catch
         val isPerfect = ThrowEngine.calculateThrow(obj, hand, boardWidth)
         val currentMultiplier = getMultiplier(objects.size)
         
-        // Release object
         obj.caughtByHand = null
 
         if (isPerfect) {
             score += 25 * currentMultiplier
-            effects.add(GameEffect(EffectType.GOLD_BURST, obj.x, obj.y, 600L, 600L)) // Ring burst
+            effects.add(GameEffect(EffectType.GOLD_BURST, obj.x, obj.y, 600L, 600L))
         }
 
         when (obj.type) {
@@ -437,7 +424,6 @@ class JuggleGameView @JvmOverloads constructor(
                 score += 30 * currentMultiplier
                 effects.add(GameEffect(EffectType.YELLOW_RING, obj.x, obj.y, 400L, 400L))
                 
-                // Spawn one new random object immediately
                 if (objects.size < 7) {
                     val allowedTypes = listOf(
                         ObjectType.GRAPES,
@@ -451,7 +437,7 @@ class JuggleGameView @JvmOverloads constructor(
                         val newObj = sp.launchObject(newType)
                         newObj.x = hand.x
                         newObj.y = hand.y - 50f
-                        newObj.velocityY = -1300f // Relaunch upward
+                        newObj.velocityY = -1050f
                         objects.add(newObj)
                         triggerObjectAddedEvent(objects.size)
                     }
@@ -460,13 +446,13 @@ class JuggleGameView @JvmOverloads constructor(
             }
             ObjectType.GOLD_STAR -> {
                 score += 50
-                goldMultiplierTimeLeftMs = 8000L // 8s gold shimmer
+                goldMultiplierTimeLeftMs = 8000L
                 effects.add(GameEffect(EffectType.GOLD_BURST, obj.x, obj.y, 600L, 600L))
-                onJokerEvent?.invoke(JokerEvent.COMBO_10) // Excitement trigger
+                onJokerEvent?.invoke(JokerEvent.COMBO_10)
             }
             ObjectType.LUCKY_7 -> {
                 score += 200 * currentMultiplier
-                flashColor = 0x80FFD860.toInt() // Gold screen flash
+                flashColor = 0x80FFD860.toInt()
                 flashTimeLeftMs = 300L
                 effects.add(GameEffect(EffectType.CONFETTI, obj.x, obj.y, 1200L, 1200L))
                 onJokerEvent?.invoke(JokerEvent.LUCKY_7_CAUGHT)
@@ -575,7 +561,7 @@ class JuggleGameView @JvmOverloads constructor(
     private fun renderObjects(canvas: Canvas) {
         val syms = symbols ?: return
         for (obj in objects) {
-            if (obj.caughtByHand != null) continue // Skip drawing caught objects here
+            if (obj.caughtByHand != null) continue
             destRect.set(
                 obj.x - obj.radius,
                 obj.y - obj.radius,
@@ -583,7 +569,6 @@ class JuggleGameView @JvmOverloads constructor(
                 obj.y + obj.radius
             )
             canvas.save()
-            // Spin object mid-arc
             canvas.rotate(obj.rotationAngle, obj.x, obj.y)
             canvas.drawBitmap(syms[obj.type.ordinal], null, destRect, null)
             canvas.restore()
@@ -647,12 +632,10 @@ class JuggleGameView @JvmOverloads constructor(
 
         canvas.drawBitmap(glove, null, gloveRect, null)
 
-        // Draw the caught object inside/on top of the hand glove
         val caughtObj = objects.find { it.caughtByHand == hand }
         if (caughtObj != null) {
             val syms = symbols
             if (syms != null) {
-                // Save canvas state before drawing symbol to preserve normal orientation (no mirroring)
                 canvas.save()
                 if (hand.isLeft) {
                     canvas.scale(-1f, 1f, hand.x, hand.y)

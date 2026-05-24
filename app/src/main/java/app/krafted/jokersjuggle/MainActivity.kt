@@ -86,7 +86,6 @@ fun JokersJuggleApp(modifier: Modifier = Modifier) {
             GameScreen(
                 vm = gameVm,
                 onGameOver = { score, elapsedSeconds, maxObjects ->
-                    // Don't save score yet — defer until player enters name on game over screen
                     navController.navigate("game_over/$score/$elapsedSeconds/$maxObjects") {
                         popUpTo("game") { inclusive = true }
                     }
