@@ -11,7 +11,7 @@ object PhysicsEngine {
 
     private val random = Random.Default
 
-    fun update(obj: FallingObject, boardWidth: Float) {
+    fun update(obj: FallingObject, boardWidth: Float, speedMultiplier: Float = 1f) {
         when (obj.type) {
             ObjectType.GRAPES -> {
                 obj.wobblePhase += WOBBLE_SPEED
@@ -31,7 +31,7 @@ object PhysicsEngine {
 
         obj.velocityY += GRAVITY * obj.type.gravityMultiplier
 
-        obj.y += obj.velocityY
+        obj.y += obj.velocityY * speedMultiplier
         obj.x += obj.velocityX
 
         val minX = obj.radius

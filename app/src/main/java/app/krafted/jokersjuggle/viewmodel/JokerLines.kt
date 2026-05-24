@@ -48,7 +48,23 @@ val JOKER_LINES: Map<JokerEvent, List<String>> = mapOf(
         "Everything on the line now."
     ),
     JokerEvent.ACT_COMPLETE to ACT_END_LINES,
-    JokerEvent.GAME_OVER to ACT_END_LINES
+    JokerEvent.GAME_OVER to ACT_END_LINES,
+    JokerEvent.CHAOS_WIND to listOf(
+        "A sudden wind. How unfortunate.",
+        "Hope you packed an umbrella."
+    ),
+    JokerEvent.CHAOS_RUSH to listOf(
+        "FASTER! FASTER!",
+        "I CAN'T STOP LAUGHING"
+    ),
+    JokerEvent.CHAOS_DARK to listOf(
+        "Can you juggle in the dark?",
+        "Lights out, darling."
+    ),
+    JokerEvent.CHAOS_MIRROR to listOf(
+        "Left is right. Right is wrong.",
+        "Switch hands. Or don't."
+    )
 )
 
 private val EVENT_MOODS: Map<JokerEvent, JokerExpression> = mapOf(
@@ -62,7 +78,11 @@ private val EVENT_MOODS: Map<JokerEvent, JokerExpression> = mapOf(
     JokerEvent.LIFE_LOST to JokerExpression.SINISTER,
     JokerEvent.LAST_LIFE to JokerExpression.UNHINGED,
     JokerEvent.ACT_COMPLETE to JokerExpression.THEATRICAL,
-    JokerEvent.GAME_OVER to JokerExpression.TRIUMPHANT
+    JokerEvent.GAME_OVER to JokerExpression.TRIUMPHANT,
+    JokerEvent.CHAOS_WIND to JokerExpression.SINISTER,
+    JokerEvent.CHAOS_RUSH to JokerExpression.UNHINGED,
+    JokerEvent.CHAOS_DARK to JokerExpression.SINISTER,
+    JokerEvent.CHAOS_MIRROR to JokerExpression.LAUGHING
 )
 
 fun quoteFor(e: JokerEvent): Pair<JokerExpression, String> {

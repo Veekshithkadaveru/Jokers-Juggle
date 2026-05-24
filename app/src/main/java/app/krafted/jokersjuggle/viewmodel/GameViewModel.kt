@@ -26,7 +26,9 @@ class GameViewModel : ViewModel() {
             comboMultiplier = s.comboMultiplier,
             audienceExcitement = s.excitement,
             isMultiplierActive = s.isMultiplierActive,
-            multiplierSecondsLeft = s.multiplierSecondsLeft
+            multiplierSecondsLeft = s.multiplierSecondsLeft,
+            screenAlpha = s.screenAlpha,
+            controlsSwapped = s.controlsSwapped
         )
     }
 

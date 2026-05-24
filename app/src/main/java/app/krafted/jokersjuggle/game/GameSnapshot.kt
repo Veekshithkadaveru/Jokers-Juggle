@@ -9,5 +9,7 @@ data class GameSnapshot(
     val comboMultiplier: Int,
     val excitement: Float,
     val isMultiplierActive: Boolean,
-    val multiplierSecondsLeft: Int
+    val multiplierSecondsLeft: Int,
+    val screenAlpha: Float = 1f,
+    val controlsSwapped: Boolean = false
 )

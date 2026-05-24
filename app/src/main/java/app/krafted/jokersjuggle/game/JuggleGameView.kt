@@ -49,6 +49,7 @@ class JuggleGameView @JvmOverloads constructor(
     var timeLeftMs: Long = 60000L
     val comboTracker = ComboTracker()
     val audienceExcitement = AudienceExcitement()
+    private val chaosEngine = ChaosEventEngine()
     var goldMultiplierTimeLeftMs: Long = 0L
     var flashColor: Int? = null
     var flashTimeLeftMs: Long = 0L
@@ -99,6 +100,9 @@ class JuggleGameView @JvmOverloads constructor(
     private val effectFillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.FILL
     }
+    private val dimPaint = Paint().apply {
+        color = 0xFF000000.toInt()
+    }
 
     init {
         holder.addCallback(this)
@@ -136,6 +140,7 @@ class JuggleGameView @JvmOverloads constructor(
         get() = audienceExcitement.value
 
     override fun surfaceCreated(holder: SurfaceHolder) {
+        chaosEngine.reset()
         gameThread = GameThread(holder, this).also {
             it.running = true
             it.start()
@@ -195,6 +200,21 @@ class JuggleGameView @JvmOverloads constructor(
         }
         effects.removeIf { it.timeLeftMs <= 0L }
 
+        val chaosStarted = chaosEngine.update(deltaMs, act, excitement)
+        if (chaosStarted != null) {
+            val event = when (chaosStarted) {
+                ChaosEvent.WIND -> JokerEvent.CHAOS_WIND
+                ChaosEvent.SPEED_RUSH -> JokerEvent.CHAOS_RUSH
+                ChaosEvent.JOKER_THROW -> JokerEvent.CHAOS_RUSH
+                ChaosEvent.BLACKOUT -> JokerEvent.CHAOS_DARK
+                ChaosEvent.MIRROR -> JokerEvent.CHAOS_MIRROR
+            }
+            onJokerEvent?.invoke(event)
+            if (chaosStarted == ChaosEvent.JOKER_THROW && boardWidth > 0f) {
+                repeat(3) { objects.add(JuggleSpawner.spawnObject(boardWidth, act)) }
+            }
+        }
+
         timeSinceLastSpawnMs += deltaMs
         if (timeSinceLastSpawnMs >= JuggleSpawner.getSpawnInterval(excitement) &&
             objects.size < JuggleSpawner.maxSimultaneous(act) &&
@@ -207,7 +227,8 @@ class JuggleGameView @JvmOverloads constructor(
         leftHand.update(deltaSeconds)
         rightHand.update(deltaSeconds)
         for (obj in objects) {
-            PhysicsEngine.update(obj, boardWidth)
+            PhysicsEngine.update(obj, boardWidth, chaosEngine.speedMultiplier)
+            obj.x += chaosEngine.windForce * deltaSeconds
         }
 
         val floorLimit = boardHeight * 0.88f
@@ -244,7 +265,9 @@ class JuggleGameView @JvmOverloads constructor(
                 comboMultiplier = comboTracker.getMultiplier(),
                 excitement = audienceExcitement.value,
                 isMultiplierActive = goldMultiplierTimeLeftMs > 0L,
-                multiplierSecondsLeft = ceil(goldMultiplierTimeLeftMs / 1000.0).toInt()
+                multiplierSecondsLeft = ceil(goldMultiplierTimeLeftMs / 1000.0).toInt(),
+                screenAlpha = chaosEngine.screenAlpha,
+                controlsSwapped = chaosEngine.controlsSwapped
             )
         )
     }
@@ -390,6 +413,11 @@ class JuggleGameView @JvmOverloads constructor(
         renderHand(canvas, leftHand)
         renderHand(canvas, rightHand)
         renderEffects(canvas)
+
+        if (chaosEngine.screenAlpha < 1f) {
+            dimPaint.alpha = ((1f - chaosEngine.screenAlpha) * 255f).toInt()
+            canvas.drawRect(0f, 0f, boardWidth, boardHeight, dimPaint)
+        }
 
         val color = flashColor
         if (color != null) {
@@ -578,7 +606,9 @@ class JuggleGameView @JvmOverloads constructor(
     override fun onTouchEvent(event: MotionEvent): Boolean {
         for (i in 0 until event.pointerCount) {
             val px = event.getX(i)
-            if (px < boardWidth / 2f) leftHand.targetX = px else rightHand.targetX = px
+            val leftSide = px < boardWidth / 2f
+            val targetLeftHand = if (chaosEngine.controlsSwapped) !leftSide else leftSide
+            if (targetLeftHand) leftHand.targetX = px else rightHand.targetX = px
         }
         if (event.actionMasked == MotionEvent.ACTION_UP) performClick()
         return true
