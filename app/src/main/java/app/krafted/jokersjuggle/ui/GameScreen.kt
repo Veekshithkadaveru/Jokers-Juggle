@@ -25,7 +25,6 @@ fun GameScreen(
             factory = { ctx ->
                 JuggleGameView(ctx).apply {
                     this.onGameOver = { score, elapsedSeconds, maxObjects ->
-                        vm.saveScore(score, elapsedSeconds, maxObjects)
                         onGameOver(score, elapsedSeconds, maxObjects)
                     }
                     this.onStateSnapshot = { vm.onSnapshot(it) }

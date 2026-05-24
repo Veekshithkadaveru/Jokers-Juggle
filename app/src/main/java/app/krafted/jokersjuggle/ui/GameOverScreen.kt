@@ -7,17 +7,27 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -30,10 +40,14 @@ fun GameOverScreen(
     score: Int,
     timeSurvivedSeconds: Int,
     maxObjectsReached: Int,
-    onReplayClick: () -> Unit,
-    onHomeClick: () -> Unit
+    onSaveAndReplay: (playerName: String) -> Unit,
+    onSaveAndHome: (playerName: String) -> Unit
 ) {
     var curtainOpen by remember { mutableStateOf(1f) }
+    var playerName by remember { mutableStateOf("") }
+    val focusManager = LocalFocusManager.current
+    val focusRequester = remember { FocusRequester() }
+
     LaunchedEffect(Unit) {
         curtainOpen = 0.12f
     }
@@ -134,7 +148,7 @@ fun GameOverScreen(
 
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        // Inset line shadow simulation separator
+                        // Separator
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -195,6 +209,95 @@ fun GameOverScreen(
                                 )
                             }
                         }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // Separator
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(1.dp)
+                                .background(Gold.copy(alpha = 0.2f))
+                        )
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // ── Player Name Input ──
+                        Text(
+                            text = "ENTER YOUR STAGE NAME",
+                            color = Gold,
+                            fontSize = 9.sp,
+                            fontFamily = SpaceGrotesk,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 3.sp
+                        )
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(50.dp)
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(Color(0xFF14080C).copy(alpha = 0.8f))
+                                .border(
+                                    1.dp,
+                                    if (playerName.isNotEmpty()) Gold else Gold.copy(alpha = 0.3f),
+                                    RoundedCornerShape(6.dp)
+                                )
+                                .padding(horizontal = 16.dp),
+                            contentAlignment = Alignment.CenterStart
+                        ) {
+                            if (playerName.isEmpty()) {
+                                Text(
+                                    text = "Anonymous Juggler",
+                                    color = CreamText.copy(alpha = 0.25f),
+                                    fontSize = 16.sp,
+                                    fontFamily = SpaceGrotesk,
+                                    fontWeight = FontWeight.Medium,
+                                    modifier = Modifier.fillMaxWidth(),
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+                            BasicTextField(
+                                value = playerName,
+                                onValueChange = { newValue ->
+                                    // Limit to 16 characters
+                                    if (newValue.length <= 16) {
+                                        playerName = newValue
+                                    }
+                                },
+                                textStyle = TextStyle(
+                                    color = Gold,
+                                    fontSize = 16.sp,
+                                    fontFamily = SpaceGrotesk,
+                                    fontWeight = FontWeight.Bold,
+                                    textAlign = TextAlign.Center,
+                                    letterSpacing = 1.sp
+                                ),
+                                singleLine = true,
+                                cursorBrush = SolidColor(Gold),
+                                keyboardOptions = KeyboardOptions(
+                                    capitalization = KeyboardCapitalization.Words,
+                                    imeAction = ImeAction.Done
+                                ),
+                                keyboardActions = KeyboardActions(
+                                    onDone = { focusManager.clearFocus() }
+                                ),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .focusRequester(focusRequester)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(4.dp))
+
+                        Text(
+                            text = "${playerName.length}/16",
+                            color = CreamText.copy(alpha = 0.25f),
+                            fontSize = 9.sp,
+                            fontFamily = SpaceGrotesk
+                        )
                     }
                 }
 
@@ -203,7 +306,7 @@ fun GameOverScreen(
                 // Joker monologue quote
                 Typewriter(
                     text = "\"The curtain falls. The performance... adequate.\"",
-                    style = androidx.compose.ui.text.TextStyle(
+                    style = TextStyle(
                         fontFamily = FontFamily.Serif,
                         fontStyle = FontStyle.Italic,
                         fontSize = 15.sp,
@@ -219,7 +322,10 @@ fun GameOverScreen(
 
                 // Replay Button
                 PrimaryButton(
-                    onClick = onReplayClick,
+                    onClick = {
+                        val name = playerName.trim().ifEmpty { "Anonymous" }
+                        onSaveAndReplay(name)
+                    },
                     accent = ButtonAccent.GOLD,
                     modifier = Modifier.fillMaxWidth(0.85f)
                 ) {
@@ -243,7 +349,10 @@ fun GameOverScreen(
                         .height(48.dp)
                         .clip(RoundedCornerShape(4.dp))
                         .border(1.dp, Gold.copy(alpha = 0.4f), RoundedCornerShape(4.dp))
-                        .clickable(onClick = onHomeClick),
+                        .clickable(onClick = {
+                            val name = playerName.trim().ifEmpty { "Anonymous" }
+                            onSaveAndHome(name)
+                        }),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(

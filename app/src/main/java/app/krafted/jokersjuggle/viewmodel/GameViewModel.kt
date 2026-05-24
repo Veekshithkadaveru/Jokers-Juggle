@@ -35,9 +35,10 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun saveScore(score: Int, time: Int, maxObjects: Int) {
+    fun saveScore(score: Int, time: Int, maxObjects: Int, playerName: String = "") {
         viewModelScope.launch {
             val record = ScoreRecord(
+                playerName = playerName,
                 score = score,
                 timeSurvivedSeconds = time,
                 maxObjectsReached = maxObjects

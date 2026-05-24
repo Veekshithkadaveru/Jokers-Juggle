@@ -1,14 +1,41 @@
 package app.krafted.jokersjuggle.ui
 
-import androidx.compose.animation.*
-import androidx.compose.animation.core.*
+import androidx.compose.animation.core.EaseInOutSine
+import androidx.compose.animation.core.EaseOutBack
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -27,24 +54,24 @@ import app.krafted.jokersjuggle.R
 import app.krafted.jokersjuggle.ui.components.GoldFlourish
 import app.krafted.jokersjuggle.ui.components.MarqueeBulbs
 import app.krafted.jokersjuggle.ui.components.StageBackdrop
+import app.krafted.jokersjuggle.ui.theme.CreamText
 import app.krafted.jokersjuggle.ui.theme.DMSerifDisplay
 import app.krafted.jokersjuggle.ui.theme.Gold
 import app.krafted.jokersjuggle.ui.theme.SpaceGrotesk
-import app.krafted.jokersjuggle.ui.theme.StageDark
-import androidx.compose.foundation.border
-import app.krafted.jokersjuggle.ui.theme.CreamText
 import kotlinx.coroutines.delay
+import kotlin.math.PI
+import kotlin.math.sin
 
 @Composable
 fun SplashScreen(onNavigateToHome: () -> Unit) {
     var phase by remember { mutableStateOf(0) }
 
     LaunchedEffect(Unit) {
-        delay(800)
+        delay(400)
         phase = 1
-        delay(1400)
+        delay(600)
         phase = 2
-        delay(1400)
+        delay(3000)
         onNavigateToHome()
     }
 
@@ -54,124 +81,184 @@ fun SplashScreen(onNavigateToHome: () -> Unit) {
             .clickable { onNavigateToHome() }
     ) {
         StageBackdrop {
-            // 1. Falling Demo Objects
-            val fallingItems = listOf(
-                R.drawable.jok021_sym_1 to 0.15f,
-                R.drawable.jok021_sym_2 to 0.30f,
-                R.drawable.jok021_sym_3 to 0.45f,
-                R.drawable.jok021_sym_5 to 0.60f,
-                R.drawable.jok021_sym_6 to 0.75f
+
+            val juggleItems = listOf(
+                R.drawable.jok021_sym_1,
+                R.drawable.jok021_sym_2,
+                R.drawable.jok021_sym_3,
+                R.drawable.jok021_sym_5,
+                R.drawable.jok021_sym_6,
+                R.drawable.jok021_sym_7
             )
 
-            fallingItems.forEachIndexed { index, (drawableId, leftPercent) ->
-                val targetYPercent = if (phase >= 1) 0.50f + (index * 0.05f) else -0.1f
-                val animatedY by animateFloatAsState(
-                    targetValue = targetYPercent,
-                    animationSpec = tween(
-                        durationMillis = 1400,
-                        delayMillis = index * 120,
-                        easing = FastOutSlowInEasing
+            val totalItems = juggleItems.size
+
+            val cycleDurationMs = 1800
+
+            val infiniteTransition = rememberInfiniteTransition(label = "juggle")
+
+            juggleItems.forEachIndexed { index, drawableId ->
+
+                val phaseOffsetMs = (cycleDurationMs * index) / totalItems
+
+                val rawProgress by infiniteTransition.animateFloat(
+                    initialValue = 0f,
+                    targetValue = 1f,
+                    animationSpec = infiniteRepeatable(
+                        animation = tween(
+                            durationMillis = cycleDurationMs,
+                            easing = LinearEasing
+                        ),
+                        repeatMode = RepeatMode.Restart
                     ),
-                    label = "falling_item_$index"
+                    label = "juggle_progress_$index"
                 )
 
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .graphicsLayer {
-                            translationX = size.width * (leftPercent - 0.5f)
-                            translationY = size.height * (animatedY - 0.5f)
-                            rotationZ = index * 30f
-                        },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Image(
-                        painter = painterResource(id = drawableId),
-                        contentDescription = null,
-                        modifier = Modifier.size(48.dp)
-                    )
+
+                val offsetFraction = phaseOffsetMs.toFloat() / cycleDurationMs.toFloat()
+                val progress = (rawProgress + offsetFraction) % 1f
+
+                val isFirstHalf = progress < 0.5f
+                val halfProgress = if (isFirstHalf) progress / 0.5f else (progress - 0.5f) / 0.5f
+
+                val leftHandX = -0.20f
+                val rightHandX = 0.20f
+
+                val xFraction = if (isFirstHalf) {
+
+                    leftHandX + (rightHandX - leftHandX) * halfProgress
+                } else {
+
+                    rightHandX + (leftHandX - rightHandX) * halfProgress
+                }
+
+                val arcHeight = sin(PI.toFloat() * halfProgress)
+
+                val handY = 0.22f
+                val peakHeight = 0.40f
+
+                val yFraction = handY - (arcHeight * peakHeight)
+
+                val rotation = progress * 720f * if (index % 2 == 0) 1f else -1f
+
+                val itemScale = 0.85f + 0.3f * arcHeight
+
+                val juggleAlpha by animateFloatAsState(
+                    targetValue = if (phase >= 1) 1f else 0f,
+                    animationSpec = tween(
+                        durationMillis = 400,
+                        delayMillis = index * 80
+                    ),
+                    label = "juggle_alpha_$index"
+                )
+
+                if (phase >= 1) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .graphicsLayer {
+                                translationX = size.width * xFraction
+                                translationY = size.height * yFraction
+                                rotationZ = rotation
+                                scaleX = itemScale
+                                scaleY = itemScale
+                                alpha = juggleAlpha
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Image(
+                            painter = painterResource(id = drawableId),
+                            contentDescription = null,
+                            modifier = Modifier.size(52.dp)
+                        )
+                    }
                 }
             }
 
-            // 2. Glove Catches (Slide in from bottom-center/sides)
             val leftGloveOffset by animateDpAsState(
-                targetValue = if (phase >= 2) 0.dp else 200.dp,
-                animationSpec = tween(600, easing = EaseOutBack),
+                targetValue = if (phase >= 1) 0.dp else 300.dp,
+                animationSpec = tween(700, easing = EaseOutBack),
                 label = "left_glove"
             )
+
             val rightGloveOffset by animateDpAsState(
-                targetValue = if (phase >= 2) 0.dp else 200.dp,
-                animationSpec = tween(600, easing = EaseOutBack),
+                targetValue = if (phase >= 1) 0.dp else 300.dp,
+                animationSpec = tween(700, delayMillis = 100, easing = EaseOutBack),
                 label = "right_glove"
             )
 
-            if (phase >= 2) {
-                // Left hand
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .graphicsLayer {
-                            translationX = -size.width * 0.22f
-                            translationY = size.height * 0.16f + leftGloveOffset.toPx()
-                        },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.jok021_glove),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(72.dp)
-                            .graphicsLayer {
-                                rotationZ = 10f
-                            }
-                    )
-                }
+            val handBob by infiniteTransition.animateFloat(
+                initialValue = -4f,
+                targetValue = 4f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(450, easing = EaseInOutSine),
+                    repeatMode = RepeatMode.Reverse
+                ),
+                label = "hand_bob"
+            )
 
-                // Right hand (Flipped horizontally)
-                Box(
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer {
+                        translationX = -size.width * 0.22f
+                        translationY = size.height * 0.28f + leftGloveOffset.toPx()
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.jok021_glove_throw),
+                    contentDescription = "Left juggling hand",
                     modifier = Modifier
-                        .fillMaxSize()
+                        .size(100.dp)
                         .graphicsLayer {
-                            translationX = size.width * 0.22f
-                            translationY = size.height * 0.16f + rightGloveOffset.toPx()
-                        },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.jok021_glove),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(72.dp)
-                            .graphicsLayer {
-                                rotationZ = -10f
-                                scaleX = -1f
-                            }
-                    )
-                }
+                            translationY = handBob
+                            rotationZ = 15f
+                        }
+                )
             }
 
-            // 3. Title Reveal Card
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer {
+                        translationX = size.width * 0.22f
+                        translationY = size.height * 0.28f + rightGloveOffset.toPx()
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.jok021_glove_throw),
+                    contentDescription = "Right juggling hand",
+                    modifier = Modifier
+                        .size(100.dp)
+                        .graphicsLayer {
+                            translationY = -handBob
+                            rotationZ = -15f
+                            scaleX = -1f
+                        }
+                )
+            }
+
             val titleAlpha by animateFloatAsState(
-                targetValue = if (phase >= 1) 1f else 0f,
+                targetValue = if (phase >= 2) 1f else 0f,
                 animationSpec = tween(800),
                 label = "title_alpha"
             )
             val titleScale by animateFloatAsState(
-                targetValue = if (phase >= 1) 1f else 0.7f,
+                targetValue = if (phase >= 2) 1f else 0.7f,
                 animationSpec = spring(dampingRatio = 0.64f, stiffness = Spring.StiffnessLow),
                 label = "title_scale"
             )
 
-            // Title Floating effect
-            val infiniteTransition = rememberInfiniteTransition(label = "title_float")
-            val floatOffset by infiniteTransition.animateFloat(
-                initialValue = -8f,
-                targetValue = 8f,
+            val titleFloat by infiniteTransition.animateFloat(
+                initialValue = -6f,
+                targetValue = 6f,
                 animationSpec = infiniteRepeatable(
                     animation = tween(1200, easing = EaseInOutSine),
                     repeatMode = RepeatMode.Reverse
                 ),
-                label = "hat_float"
+                label = "title_float"
             )
 
             Box(
@@ -179,7 +266,7 @@ fun SplashScreen(onNavigateToHome: () -> Unit) {
                     .fillMaxWidth()
                     .padding(horizontal = 24.dp)
                     .align(Alignment.TopCenter)
-                    .offset(y = 120.dp)
+                    .offset(y = 100.dp)
                     .alpha(titleAlpha)
                     .scale(titleScale),
                 contentAlignment = Alignment.Center
@@ -197,17 +284,15 @@ fun SplashScreen(onNavigateToHome: () -> Unit) {
                         .padding(horizontal = 18.dp, vertical = 24.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // Top marquee bulbs
                     MarqueeBulbs(count = 14, modifier = Modifier.padding(bottom = 12.dp))
 
-                    // Floating Hat
                     Image(
                         painter = painterResource(id = R.drawable.jok021_sym_4),
                         contentDescription = "Joker Hat",
                         contentScale = ContentScale.Fit,
                         modifier = Modifier
                             .size(110.dp)
-                            .offset(y = floatOffset.dp)
+                            .offset(y = titleFloat.dp)
                     )
 
                     Spacer(modifier = Modifier.height(8.dp))
@@ -253,7 +338,6 @@ fun SplashScreen(onNavigateToHome: () -> Unit) {
                         GoldFlourish(width = 60.dp, flip = true)
                     }
 
-                    // Bottom marquee bulbs
                     MarqueeBulbs(count = 14, modifier = Modifier.padding(top = 16.dp))
                 }
             }

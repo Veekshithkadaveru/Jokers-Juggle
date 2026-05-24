@@ -3,7 +3,18 @@ package app.krafted.jokersjuggle.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
@@ -18,15 +29,21 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.krafted.jokersjuggle.data.db.ScoreRecord
-import app.krafted.jokersjuggle.ui.components.*
-import app.krafted.jokersjuggle.ui.theme.*
+import app.krafted.jokersjuggle.ui.components.ButtonAccent
+import app.krafted.jokersjuggle.ui.components.GoldFlourish
+import app.krafted.jokersjuggle.ui.components.PrimaryButton
+import app.krafted.jokersjuggle.ui.components.StageBackdrop
+import app.krafted.jokersjuggle.ui.theme.CreamText
+import app.krafted.jokersjuggle.ui.theme.DMSerifDisplay
+import app.krafted.jokersjuggle.ui.theme.Gold
+import app.krafted.jokersjuggle.ui.theme.MarqueeDim
+import app.krafted.jokersjuggle.ui.theme.SpaceGrotesk
 import app.krafted.jokersjuggle.viewmodel.LeaderboardViewModel
 
 @Composable
@@ -49,7 +66,6 @@ fun LeaderboardScreen(
             ) {
                 Spacer(modifier = Modifier.height(32.dp))
 
-                // Back navigation text button
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Start
@@ -67,7 +83,6 @@ fun LeaderboardScreen(
                     )
                 }
 
-                // Header title
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
@@ -100,7 +115,6 @@ fun LeaderboardScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Scores list container
                 if (scores.isEmpty()) {
                     Box(
                         modifier = Modifier
@@ -135,7 +149,6 @@ fun LeaderboardScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Bottom Back button
                 PrimaryButton(
                     onClick = onBackClick,
                     accent = ButtonAccent.GOLD,
@@ -161,8 +174,8 @@ fun LeaderboardScreen(
 private fun LeaderboardItem(rank: Int, record: ScoreRecord) {
     val medalColor = when (rank) {
         1 -> Gold
-        2 -> Color(0xFFD8D8D8) // Silver
-        3 -> Color(0xFFCD7F32) // Bronze
+        2 -> Color(0xFFD8D8D8)
+        3 -> Color(0xFFCD7F32)
         else -> Color.Transparent
     }
 
@@ -180,17 +193,25 @@ private fun LeaderboardItem(rank: Int, record: ScoreRecord) {
         else -> "${rank}th"
     }
 
-    // Row Background (Gradient for Top 3, transparent/plain for others)
     val itemBgBrush = when (rank) {
         1 -> Brush.horizontalGradient(
             colors = listOf(Gold.copy(alpha = 0.25f), Gold.copy(alpha = 0.05f))
         )
+
         2 -> Brush.horizontalGradient(
-            colors = listOf(Color(0xFF3C3018).copy(alpha = 0.6f), Color(0xFF14080C).copy(alpha = 0.6f))
+            colors = listOf(
+                Color(0xFF3C3018).copy(alpha = 0.6f),
+                Color(0xFF14080C).copy(alpha = 0.6f)
+            )
         )
+
         3 -> Brush.horizontalGradient(
-            colors = listOf(Color(0xFF3C3018).copy(alpha = 0.6f), Color(0xFF14080C).copy(alpha = 0.6f))
+            colors = listOf(
+                Color(0xFF3C3018).copy(alpha = 0.6f),
+                Color(0xFF14080C).copy(alpha = 0.6f)
+            )
         )
+
         else -> null
     }
 
@@ -215,7 +236,6 @@ private fun LeaderboardItem(rank: Int, record: ScoreRecord) {
             .padding(horizontal = 14.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Rank Badge
         Box(
             modifier = Modifier
                 .size(28.dp)
@@ -250,12 +270,11 @@ private fun LeaderboardItem(rank: Int, record: ScoreRecord) {
 
         Spacer(modifier = Modifier.width(14.dp))
 
-        // Performance Stats details
         Column(
             modifier = Modifier.weight(1f)
         ) {
             Text(
-                text = "Score: ${record.score}",
+                text = record.playerName.ifEmpty { "Anonymous" },
                 color = if (rank == 1) Color(0xFFFFD860) else CreamText,
                 fontSize = 15.sp,
                 fontFamily = SpaceGrotesk,
@@ -264,6 +283,14 @@ private fun LeaderboardItem(rank: Int, record: ScoreRecord) {
             )
             Spacer(modifier = Modifier.height(2.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "🎯 ${record.score}",
+                    color = if (rank == 1) Gold.copy(alpha = 0.8f) else CreamText.copy(alpha = 0.5f),
+                    fontSize = 11.sp,
+                    fontFamily = SpaceGrotesk,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Spacer(modifier = Modifier.width(12.dp))
                 Text(
                     text = "⏱ ${formatTime(record.timeSurvivedSeconds)}",
                     color = CreamText.copy(alpha = 0.5f),
@@ -291,7 +318,6 @@ private fun LeaderboardItem(rank: Int, record: ScoreRecord) {
             }
         }
 
-        // Rank designation
         Text(
             text = rankSuffixText,
             color = if (medalColor != Color.Transparent) medalColor else CreamText.copy(alpha = 0.4f),

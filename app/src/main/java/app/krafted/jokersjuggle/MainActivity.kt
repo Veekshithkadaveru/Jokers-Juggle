@@ -9,19 +9,23 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import app.krafted.jokersjuggle.ui.*
+import app.krafted.jokersjuggle.ui.GameOverScreen
+import app.krafted.jokersjuggle.ui.GameScreen
+import app.krafted.jokersjuggle.ui.HomeScreen
+import app.krafted.jokersjuggle.ui.LeaderboardScreen
+import app.krafted.jokersjuggle.ui.SplashScreen
 import app.krafted.jokersjuggle.ui.theme.JokersJuggleTheme
 import app.krafted.jokersjuggle.ui.theme.StageDark
-import androidx.compose.runtime.LaunchedEffect
-import androidx.lifecycle.viewmodel.compose.viewModel
-import app.krafted.jokersjuggle.viewmodel.HomeViewModel
 import app.krafted.jokersjuggle.viewmodel.GameViewModel
+import app.krafted.jokersjuggle.viewmodel.HomeViewModel
 import app.krafted.jokersjuggle.viewmodel.LeaderboardViewModel
 
 class MainActivity : ComponentActivity() {
@@ -82,7 +86,7 @@ fun JokersJuggleApp(modifier: Modifier = Modifier) {
             GameScreen(
                 vm = gameVm,
                 onGameOver = { score, elapsedSeconds, maxObjects ->
-                    gameVm.saveScore(score, elapsedSeconds, maxObjects)
+                    // Don't save score yet — defer until player enters name on game over screen
                     navController.navigate("game_over/$score/$elapsedSeconds/$maxObjects") {
                         popUpTo("game") { inclusive = true }
                     }
@@ -97,6 +101,7 @@ fun JokersJuggleApp(modifier: Modifier = Modifier) {
                 navArgument("maxObjects") { type = NavType.IntType }
             )
         ) { backStackEntry ->
+            val gameVm: GameViewModel = viewModel()
             val score = backStackEntry.arguments?.getInt("score") ?: 0
             val time = backStackEntry.arguments?.getInt("time") ?: 0
             val maxObjects = backStackEntry.arguments?.getInt("maxObjects") ?: 0
@@ -104,12 +109,14 @@ fun JokersJuggleApp(modifier: Modifier = Modifier) {
                 score = score,
                 timeSurvivedSeconds = time,
                 maxObjectsReached = maxObjects,
-                onReplayClick = {
+                onSaveAndReplay = { playerName ->
+                    gameVm.saveScore(score, time, maxObjects, playerName)
                     navController.navigate("game") {
                         popUpTo("home") { inclusive = false }
                     }
                 },
-                onHomeClick = {
+                onSaveAndHome = { playerName ->
+                    gameVm.saveScore(score, time, maxObjects, playerName)
                     navController.navigate("home") {
                         popUpTo("home") { inclusive = true }
                     }

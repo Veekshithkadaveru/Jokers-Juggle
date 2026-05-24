@@ -6,6 +6,7 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "scores")
 data class ScoreRecord(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    val playerName: String = "",
     val score: Int,
     val timeSurvivedSeconds: Int,
     val maxObjectsReached: Int,
