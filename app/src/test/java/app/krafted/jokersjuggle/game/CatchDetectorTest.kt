@@ -5,7 +5,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import app.krafted.jokersjuggle.game.CatchDetector.checkCatch
 
-
 class CatchDetectorTest {
 
     @Test
@@ -14,11 +13,13 @@ class CatchDetectorTest {
             x = 100f
             y = 500f
         }
-        val obj = FallingObject(
+        val obj = JuggleObject(
+            id = 1,
             type = ObjectType.ORANGE,
             x = 100f,
             y = 500f,
-            radius = 30f
+            velocityX = 0f,
+            velocityY = 10f
         )
         assertTrue(checkCatch(obj, hand))
     }
@@ -29,20 +30,23 @@ class CatchDetectorTest {
             x = 100f
             y = 500f
         }
-        // dx threshold is 65 + 30 * 0.5 = 80
-        val objFarX = FallingObject(
+        val objFarX = JuggleObject(
+            id = 1,
             type = ObjectType.ORANGE,
-            x = 181f,
+            x = 194f,
             y = 500f,
-            radius = 30f
+            velocityX = 0f,
+            velocityY = 10f
         )
         assertFalse(checkCatch(objFarX, hand))
 
-        val objCloseX = FallingObject(
+        val objCloseX = JuggleObject(
+            id = 1,
             type = ObjectType.ORANGE,
-            x = 179f,
+            x = 192f,
             y = 500f,
-            radius = 30f
+            velocityX = 0f,
+            velocityY = 10f
         )
         assertTrue(checkCatch(objCloseX, hand))
     }
@@ -53,45 +57,41 @@ class CatchDetectorTest {
             x = 100f
             y = 500f
         }
-        // dy threshold is 36 + 30 * 0.5 = 51
-        val objFarY = FallingObject(
+        val objFarY = JuggleObject(
+            id = 1,
             type = ObjectType.ORANGE,
             x = 100f,
-            y = 552f,
-            radius = 30f
+            y = 554f,
+            velocityX = 0f,
+            velocityY = 10f
         )
         assertFalse(checkCatch(objFarY, hand))
 
-        val objCloseY = FallingObject(
+        val objCloseY = JuggleObject(
+            id = 1,
             type = ObjectType.ORANGE,
             x = 100f,
-            y = 550f,
-            radius = 30f
+            y = 552f,
+            velocityX = 0f,
+            velocityY = 10f
         )
         assertTrue(checkCatch(objCloseY, hand))
     }
 
     @Test
-    fun testCheckCatchAboveGloveTopLimit() {
+    fun testCheckCatchMovingUpward() {
         val hand = Hand(isLeft = true).apply {
             x = 100f
             y = 500f
         }
-        // glove top is hand.y - 36 = 464
-        val objAboveGloveTop = FallingObject(
+        val objUpward = JuggleObject(
+            id = 1,
             type = ObjectType.ORANGE,
             x = 100f,
-            y = 463f,
-            radius = 30f
+            y = 500f,
+            velocityX = 0f,
+            velocityY = -10f
         )
-        assertFalse(checkCatch(objAboveGloveTop, hand))
-
-        val objBelowGloveTop = FallingObject(
-            type = ObjectType.ORANGE,
-            x = 100f,
-            y = 465f,
-            radius = 30f
-        )
-        assertTrue(checkCatch(objBelowGloveTop, hand))
+        assertFalse(checkCatch(objUpward, hand))
     }
 }

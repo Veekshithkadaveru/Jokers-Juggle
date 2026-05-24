@@ -40,6 +40,8 @@ import app.krafted.jokersjuggle.ui.theme.DeepStage
 import app.krafted.jokersjuggle.ui.theme.Gold
 import app.krafted.jokersjuggle.ui.theme.MarqueeDim
 import app.krafted.jokersjuggle.ui.theme.StageDark
+import app.krafted.jokersjuggle.ui.theme.SpaceGrotesk
+import app.krafted.jokersjuggle.ui.theme.DMSerifDisplay
 import app.krafted.jokersjuggle.viewmodel.GameUiState
 import app.krafted.jokersjuggle.viewmodel.JokerExpression
 
@@ -87,6 +89,7 @@ private fun ExcitementMeterRow(excitement: Float) {
         Text(
             text = "Excitement: ",
             color = CreamText.copy(alpha = 0.8f),
+            fontFamily = SpaceGrotesk,
             fontSize = 11.sp,
             fontWeight = FontWeight.SemiBold
         )
@@ -113,6 +116,7 @@ private fun ExcitementMeterRow(excitement: Float) {
             Text(
                 text = level,
                 color = labelColor,
+                fontFamily = SpaceGrotesk,
                 fontSize = 8.sp,
                 fontWeight = FontWeight.SemiBold,
                 letterSpacing = 1.sp,
@@ -145,12 +149,14 @@ private fun StatsBar(score: Int, lives: Int, multiplier: Int) {
             Text(
                 text = "SCORE",
                 color = CreamText.copy(alpha = 0.8f),
+                fontFamily = SpaceGrotesk,
                 fontSize = 8.sp,
                 letterSpacing = 2.sp
             )
             Text(
                 text = score.toString(),
                 color = CreamText,
+                fontFamily = DMSerifDisplay,
                 style = TextStyle(
                     fontSize = 22.sp,
                     fontStyle = FontStyle.Italic,
@@ -161,6 +167,7 @@ private fun StatsBar(score: Int, lives: Int, multiplier: Int) {
         Text(
             text = "×$multiplier",
             color = Gold,
+            fontFamily = SpaceGrotesk,
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
             letterSpacing = 1.sp,
@@ -230,7 +237,7 @@ private fun TimerObjectsRow(state: GameUiState) {
         Text(
             text = "⏱ ${formatTime(state.elapsedSeconds)}",
             color = CreamText,
-            fontFamily = FontFamily.Monospace,
+            fontFamily = SpaceGrotesk,
             fontSize = 12.sp,
             fontWeight = FontWeight.SemiBold
         )
@@ -239,7 +246,7 @@ private fun TimerObjectsRow(state: GameUiState) {
         Text(
             text = "Objects: ${state.airborneCount}",
             color = Gold,
-            fontFamily = FontFamily.SansSerif,
+            fontFamily = SpaceGrotesk,
             fontSize = 12.sp,
             fontWeight = FontWeight.SemiBold
         )
@@ -250,6 +257,7 @@ private fun TimerObjectsRow(state: GameUiState) {
                 Text(
                     text = "★ 2× · ${state.goldStarSecondsLeft}s",
                     color = Frenzy,
+                    fontFamily = SpaceGrotesk,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier
@@ -265,7 +273,7 @@ private fun TimerObjectsRow(state: GameUiState) {
             Text(
                 text = "Next: ${state.nextObjectCountdown}s",
                 color = if (state.nextObjectCountdown <= 3) WarningOrange else CreamText,
-                fontFamily = FontFamily.Monospace,
+                fontFamily = SpaceGrotesk,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold
             )

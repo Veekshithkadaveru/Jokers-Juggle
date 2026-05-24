@@ -18,6 +18,11 @@ import androidx.navigation.navArgument
 import app.krafted.jokersjuggle.ui.*
 import app.krafted.jokersjuggle.ui.theme.JokersJuggleTheme
 import app.krafted.jokersjuggle.ui.theme.StageDark
+import androidx.compose.runtime.LaunchedEffect
+import androidx.lifecycle.viewmodel.compose.viewModel
+import app.krafted.jokersjuggle.viewmodel.HomeViewModel
+import app.krafted.jokersjuggle.viewmodel.GameViewModel
+import app.krafted.jokersjuggle.viewmodel.LeaderboardViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -58,7 +63,12 @@ fun JokersJuggleApp(modifier: Modifier = Modifier) {
             )
         }
         composable("home") {
+            val homeVm: HomeViewModel = viewModel()
+            LaunchedEffect(Unit) {
+                homeVm.loadBestScore()
+            }
             HomeScreen(
+                viewModel = homeVm,
                 onPlayClick = {
                     navController.navigate("game")
                 },
@@ -68,8 +78,11 @@ fun JokersJuggleApp(modifier: Modifier = Modifier) {
             )
         }
         composable("game") {
+            val gameVm: GameViewModel = viewModel()
             GameScreen(
+                vm = gameVm,
                 onGameOver = { score, elapsedSeconds, maxObjects ->
+                    gameVm.saveScore(score, elapsedSeconds, maxObjects)
                     navController.navigate("game_over/$score/$elapsedSeconds/$maxObjects") {
                         popUpTo("game") { inclusive = true }
                     }
@@ -104,7 +117,12 @@ fun JokersJuggleApp(modifier: Modifier = Modifier) {
             )
         }
         composable("leaderboard") {
+            val leaderboardVm: LeaderboardViewModel = viewModel()
+            LaunchedEffect(Unit) {
+                leaderboardVm.loadScores()
+            }
             LeaderboardScreen(
+                viewModel = leaderboardVm,
                 onBackClick = {
                     navController.popBackStack()
                 }

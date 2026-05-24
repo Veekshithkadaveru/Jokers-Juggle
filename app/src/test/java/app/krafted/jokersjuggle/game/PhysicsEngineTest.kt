@@ -9,10 +9,17 @@ class PhysicsEngineTest {
 
     @Test
     fun gravityAcceleratesFall() {
-        val obj = FallingObject(type = ObjectType.GRAPES, x = 500f, y = 0f)
+        val obj = JuggleObject(
+            id = 1,
+            type = ObjectType.GRAPES,
+            x = 500f,
+            y = 0f,
+            velocityX = 0f,
+            velocityY = 0f
+        )
         var previous = obj.velocityY
         repeat(5) {
-            PhysicsEngine.update(obj, boardWidth)
+            PhysicsEngine.update(obj, boardWidth, 0.1f)
             assertTrue(obj.velocityY > previous)
             previous = obj.velocityY
         }
@@ -20,22 +27,43 @@ class PhysicsEngineTest {
 
     @Test
     fun orangeFallsFasterThanGrapes() {
-        val orange = FallingObject(type = ObjectType.ORANGE, x = 500f, y = 0f, radius = 40f)
-        val grapes = FallingObject(type = ObjectType.GRAPES, x = 500f, y = 0f, radius = 40f)
+        val orange = JuggleObject(
+            id = 1,
+            type = ObjectType.ORANGE,
+            x = 500f,
+            y = 0f,
+            velocityX = 0f,
+            velocityY = 0f
+        )
+        val grapes = JuggleObject(
+            id = 2,
+            type = ObjectType.GRAPES,
+            x = 500f,
+            y = 0f,
+            velocityX = 0f,
+            velocityY = 0f
+        )
         repeat(30) {
-            PhysicsEngine.update(orange, boardWidth)
-            PhysicsEngine.update(grapes, boardWidth)
+            PhysicsEngine.update(orange, boardWidth, 0.1f)
+            PhysicsEngine.update(grapes, boardWidth, 0.1f)
         }
         assertTrue(orange.y > grapes.y)
     }
 
     @Test
     fun grapesXOscillates() {
-        val obj = FallingObject(type = ObjectType.GRAPES, x = 500f, y = 0f, velocityY = 0f)
+        val obj = JuggleObject(
+            id = 1,
+            type = ObjectType.GRAPES,
+            x = 500f,
+            y = 0f,
+            velocityX = 0f,
+            velocityY = 0f
+        )
         val xs = ArrayList<Float>()
         repeat(80) {
             obj.velocityY = 0f
-            PhysicsEngine.update(obj, boardWidth)
+            PhysicsEngine.update(obj, boardWidth, 0.1f)
             xs.add(obj.x)
         }
         var sawPositive = false
@@ -50,16 +78,16 @@ class PhysicsEngineTest {
 
     @Test
     fun wallClamp() {
-        val radius = 40f
-        val obj = FallingObject(
+        val obj = JuggleObject(
+            id = 1,
             type = ObjectType.JOKER_HAT,
-            x = boardWidth - radius - 5f,
+            x = boardWidth - 45f,
             y = 0f,
             velocityX = 200f,
-            radius = radius
+            velocityY = 0f
         )
         repeat(20) {
-            PhysicsEngine.update(obj, boardWidth)
+            PhysicsEngine.update(obj, boardWidth, 0.1f)
             assertTrue(obj.x <= boardWidth - obj.radius)
             assertTrue(obj.x >= obj.radius)
         }
