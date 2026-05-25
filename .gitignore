@@ -9,6 +9,7 @@
 /.idea/assetWizardSettings.xml
 .DS_Store
 /build
+/app/release
 /captures
 .externalNativeBuild
 .cxx
@@ -19,3 +20,4 @@ Jokers Juggle
 .idea
 .kotlin
 .claude
+Untitled

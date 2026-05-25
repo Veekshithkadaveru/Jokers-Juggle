@@ -10,7 +10,7 @@ interface JuggleDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertScore(record: ScoreRecord)
 
-    @Query("SELECT * FROM scores ORDER BY score DESC LIMIT 10")
+    @Query("SELECT * FROM scores ORDER BY score DESC, timestamp ASC LIMIT 10")
     suspend fun getTopScores(): List<ScoreRecord>
 
     @Query("SELECT MAX(score) FROM scores")

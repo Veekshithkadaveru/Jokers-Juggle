@@ -33,7 +33,7 @@ class CatchDetectorTest {
         val objFarX = JuggleObject(
             id = 1,
             type = ObjectType.ORANGE,
-            x = 194f,
+            x = 290f,
             y = 500f,
             velocityX = 0f,
             velocityY = 10f
@@ -43,7 +43,7 @@ class CatchDetectorTest {
         val objCloseX = JuggleObject(
             id = 1,
             type = ObjectType.ORANGE,
-            x = 192f,
+            x = 280f,
             y = 500f,
             velocityX = 0f,
             velocityY = 10f
@@ -61,7 +61,7 @@ class CatchDetectorTest {
             id = 1,
             type = ObjectType.ORANGE,
             x = 100f,
-            y = 554f,
+            y = 610f,
             velocityX = 0f,
             velocityY = 10f
         )
@@ -71,7 +71,7 @@ class CatchDetectorTest {
             id = 1,
             type = ObjectType.ORANGE,
             x = 100f,
-            y = 552f,
+            y = 600f,
             velocityX = 0f,
             velocityY = 10f
         )

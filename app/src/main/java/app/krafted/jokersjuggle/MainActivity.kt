@@ -11,6 +11,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
+import androidx.activity.compose.LocalActivity
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -82,12 +83,18 @@ fun JokersJuggleApp(modifier: Modifier = Modifier) {
             )
         }
         composable("game") {
-            val gameVm: GameViewModel = viewModel()
+            val activity = LocalActivity.current as ComponentActivity
+            val gameVm: GameViewModel = viewModel(viewModelStoreOwner = activity)
             GameScreen(
                 vm = gameVm,
                 onGameOver = { score, elapsedSeconds, maxObjects ->
                     navController.navigate("game_over/$score/$elapsedSeconds/$maxObjects") {
                         popUpTo("game") { inclusive = true }
+                    }
+                },
+                onExit = {
+                    navController.navigate("home") {
+                        popUpTo("home") { inclusive = true }
                     }
                 }
             )
@@ -100,7 +107,8 @@ fun JokersJuggleApp(modifier: Modifier = Modifier) {
                 navArgument("maxObjects") { type = NavType.IntType }
             )
         ) { backStackEntry ->
-            val gameVm: GameViewModel = viewModel()
+            val activity = LocalActivity.current as ComponentActivity
+            val gameVm: GameViewModel = viewModel(viewModelStoreOwner = activity)
             val score = backStackEntry.arguments?.getInt("score") ?: 0
             val time = backStackEntry.arguments?.getInt("time") ?: 0
             val maxObjects = backStackEntry.arguments?.getInt("maxObjects") ?: 0

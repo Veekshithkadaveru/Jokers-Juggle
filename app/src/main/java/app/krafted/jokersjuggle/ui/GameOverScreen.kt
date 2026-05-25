@@ -45,6 +45,7 @@ fun GameOverScreen(
 ) {
     var curtainOpen by remember { mutableStateOf(1f) }
     var playerName by remember { mutableStateOf("") }
+    var isNavigating by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
     val focusRequester = remember { FocusRequester() }
     val scope = rememberCoroutineScope()
@@ -300,6 +301,8 @@ fun GameOverScreen(
 
                 PrimaryButton(
                     onClick = {
+                        if (isNavigating) return@PrimaryButton
+                        isNavigating = true
                         val name = playerName.trim().ifEmpty { "Anonymous" }
                         scope.launch {
                             curtainOpen = 0f
@@ -308,6 +311,7 @@ fun GameOverScreen(
                         }
                     },
                     accent = ButtonAccent.GOLD,
+                    enabled = !isNavigating,
                     modifier = Modifier.fillMaxWidth(0.85f)
                 ) {
                     Text(
@@ -329,7 +333,9 @@ fun GameOverScreen(
                         .height(44.dp)
                         .clip(RoundedCornerShape(4.dp))
                         .border(1.dp, Gold.copy(alpha = 0.4f), RoundedCornerShape(4.dp))
-                        .clickable(onClick = {
+                        .clickable(enabled = !isNavigating, onClick = {
+                            if (isNavigating) return@clickable
+                            isNavigating = true
                             val name = playerName.trim().ifEmpty { "Anonymous" }
                             scope.launch {
                                 curtainOpen = 0f

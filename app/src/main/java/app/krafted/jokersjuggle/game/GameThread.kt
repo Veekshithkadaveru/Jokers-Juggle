@@ -11,10 +11,22 @@ class GameThread(
     @Volatile
     var running: Boolean = false
 
+    @Volatile
+    var paused: Boolean = false
+
     override fun run() {
         var last = System.nanoTime()
         while (running) {
             val frameStart = System.nanoTime()
+            if (paused) {
+                last = frameStart
+                try {
+                    sleep(50L)
+                } catch (e: InterruptedException) {
+                    break
+                }
+                continue
+            }
             val dt = ((frameStart - last) / 1_000_000_000f).coerceAtMost(0.05f)
             last = frameStart
 
@@ -22,7 +34,7 @@ class GameThread(
             try {
                 canvas = surfaceHolder.lockCanvas()
                 if (canvas != null) {
-                    synchronized(surfaceHolder) {
+                    synchronized(gameView.lock) {
                         gameView.update(dt)
                         gameView.render(canvas)
                     }

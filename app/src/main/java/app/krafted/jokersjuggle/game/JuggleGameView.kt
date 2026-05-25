@@ -36,6 +36,9 @@ class JuggleGameView @JvmOverloads constructor(
     attrs: AttributeSet? = null
 ) : SurfaceView(context, attrs), SurfaceHolder.Callback {
 
+    val lock = Any()
+    private var gameOver = false
+
     private var elapsedMs: Long = 0L
     private var scoreTickTimerMs = 0L
     private var streak5ObjTimerMs = 0L
@@ -153,21 +156,23 @@ class JuggleGameView @JvmOverloads constructor(
     }
 
     override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
-        boardWidth = width.toFloat()
-        boardHeight = height.toFloat()
-        
-        leftHand.y = boardHeight * 0.88f
-        rightHand.y = boardHeight * 0.88f
-        leftHand.x = boardWidth * 0.25f
-        leftHand.targetX = boardWidth * 0.25f
-        leftHand.prevX = boardWidth * 0.25f
-        rightHand.x = boardWidth * 0.75f
-        rightHand.targetX = boardWidth * 0.75f
-        rightHand.prevX = boardWidth * 0.75f
+        synchronized(lock) {
+            boardWidth = width.toFloat()
+            boardHeight = height.toFloat()
 
-        if (spawner == null) {
-            spawner = JuggleSpawner(boardWidth, boardHeight)
-            resetGame()
+            leftHand.y = boardHeight * 0.88f
+            rightHand.y = boardHeight * 0.88f
+            leftHand.x = boardWidth * 0.25f
+            leftHand.targetX = boardWidth * 0.25f
+            leftHand.prevX = boardWidth * 0.25f
+            rightHand.x = boardWidth * 0.75f
+            rightHand.targetX = boardWidth * 0.75f
+            rightHand.prevX = boardWidth * 0.75f
+
+            if (spawner == null) {
+                spawner = JuggleSpawner(boardWidth, boardHeight)
+                resetGame()
+            }
         }
     }
 
@@ -183,7 +188,30 @@ class JuggleGameView @JvmOverloads constructor(
         }
     }
 
+    fun pauseLoop() {
+        gameThread?.paused = true
+    }
+
+    fun resumeLoop() {
+        gameThread?.paused = false
+    }
+
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        backgrounds?.forEach { it.recycle() }
+        symbols?.forEach { it.recycle() }
+        gloveBitmap?.recycle()
+        gloveGripBitmap?.recycle()
+        gloveThrowBitmap?.recycle()
+        backgrounds = null
+        symbols = null
+        gloveBitmap = null
+        gloveGripBitmap = null
+        gloveThrowBitmap = null
+    }
+
     fun resetGame() {
+        gameOver = false
         score = 0
         lives = 3
         elapsedMs = 0L
@@ -515,6 +543,8 @@ class JuggleGameView @JvmOverloads constructor(
     }
 
     private fun endGame() {
+        if (gameOver) return
+        gameOver = true
         gameThread?.running = false
         val isLow = maxObjectsReached <= 2
         val gameOverEvent = if (isLow) JokerEvent.GAME_OVER_LOW else JokerEvent.GAME_OVER_HIGH
@@ -766,14 +796,16 @@ class JuggleGameView @JvmOverloads constructor(
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
-        for (i in 0 until event.pointerCount) {
-            val px = event.getX(i)
-            val leftSide = px < boardWidth / 2f
-            val targetLeftHand = if (chaosEngine.controlsSwapped) !leftSide else leftSide
-            if (targetLeftHand) {
-                leftHand.targetX = px
-            } else {
-                rightHand.targetX = px
+        synchronized(lock) {
+            for (i in 0 until event.pointerCount) {
+                val px = event.getX(i)
+                val leftSide = px < boardWidth / 2f
+                val targetLeftHand = if (chaosEngine.controlsSwapped) !leftSide else leftSide
+                if (targetLeftHand) {
+                    leftHand.targetX = px
+                } else {
+                    rightHand.targetX = px
+                }
             }
         }
         if (event.actionMasked == MotionEvent.ACTION_UP) performClick()
